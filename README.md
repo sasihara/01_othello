@@ -20,7 +20,7 @@ Microsoft Visual Studio Community 2019での動作を確認しております。
 This is an Othello game. It is possible to play with computer.
 
 ## Development environment
-I confirmed compiling and running under Microsoft Visual Studio Community 2019. I don't confirm with other versions of Visual Studio, but maybe okey because of using only basic windows APIs.
+I confirmed compiling and running under Microsoft Visual Studio Community 2019. I don't confirm with other versions of Visual Studio, but maybe okey because only basic windows APIs are used.
 
 ## History
 |Version|Release Date|Note|
