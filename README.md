@@ -14,7 +14,7 @@ Microsoft Visual Studio Community 2019での動作を確認しております。
 ## History
 |Version|Release Date|Note|
 |-------|------------|--------|
-|1.0|2019/12/15|最初のバージョン。コンピュータとの対戦機能付き。コンピュータの思考ルーチンは古典的なミニマックス法を用いたもの。筆者が1988年頃に作ったものをリメイクした程度のもの。パラメータのチューニングはまだほとんど行っていません。|
+|1.0|2019/12/15|最初のバージョン。コンピュータとの対戦機能付き。コンピュータの思考ルーチンは古典的なミニマックス法を用いたもの。筆者が1988年頃に作ったものをリメイクした程度のもの。パラメータのチューニングはまだほとんど行っていません。外部思考ルーチンにはまだ未対応です。|
 ----------------------------
 # Othello(*1)
 (*1) Othello is the trademark of Othello,Co. and MegaHouse.
@@ -31,4 +31,4 @@ I confirmed compiling and running under Microsoft Visual Studio Community 2019. 
 ## History
 |Version|Release Date|Note|
 |-------|------------|--------|
-|1.0|2019/12/15|Initial version. Playing with computer is possible. The thinker uses traditional method, i.e. min-max method. This is a remade version which I wrote in 1988. Tuning of parameters is not finished yet.|
+|1.0|2019/12/15|Initial version. Playing with computer is possible. The thinker uses traditional method, i.e. min-max method. This is a remade version which I wrote in 1988. Tuning of parameters is not finished yet. Using separated thinking module is not supported yet.|
