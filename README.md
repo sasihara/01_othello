@@ -25,4 +25,4 @@ I confirmed compiling and running under Microsoft Visual Studio Community 2019. 
 ## History
 |Version|Release Date|Note|
 |-------|------------|--------|
-|1.0|2019/12/15|Initial version. Playing with computer is possible. The thinker uses traditional method of min-max method. This is the remade version which I wrote in 1988.|
+|1.0|2019/12/15|Initial version. Playing with computer is possible. The thinker uses traditional method, i.e. min-max method. This is the remade version which I wrote in 1988.|
