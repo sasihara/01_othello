@@ -1,6 +1,5 @@
 // Othello Thinker Version 3.00
 // Copyright (C) 1994 T.Sashihara
-// This program goes with Othello for Windows Ver 3.00
 
 #include <windows.h>
 #include "othello.hpp"
