@@ -5,6 +5,9 @@
 ## はじめに
 オセロゲームです。コンピュータとの対戦が可能です。
 
+## 推奨環境
+Intel Core i5 2.4GHz程度のCPUであれば十分遊べます。
+
 ## 開発環境
 Microsoft Visual Studio Community 2019での動作を確認しております。それ以外の環境については未確認ですが、基本的なAPIしか使用してないため、他のバージョンでも動作する可能性は高いと思います。
 
@@ -18,6 +21,9 @@ Microsoft Visual Studio Community 2019での動作を確認しております。
 
 ## Introduction
 This is an Othello game. It is possible to play with computer.
+
+## Specifications for playning
+Intel Core i5 2.4GHz is enough for playning.
 
 ## Development environment
 I confirmed compiling and running under Microsoft Visual Studio Community 2019. I don't confirm with other versions of Visual Studio, but maybe okey because only basic windows APIs are used.
