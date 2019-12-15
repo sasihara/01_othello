@@ -23,7 +23,7 @@ Microsoft Visual Studio Community 2019での動作を確認しております。
 This is an Othello game. It is possible to play with computer.
 
 ## Specifications for playning
-Intel Core i5 2.4GHz is enough for playning.
+Intel Core i5 2.4GHz CPU is enough for playning.
 
 ## Development environment
 I confirmed compiling and running under Microsoft Visual Studio Community 2019. I don't confirm with other versions of Visual Studio, but maybe okey because only basic windows APIs are used.
