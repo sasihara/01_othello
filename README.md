@@ -40,4 +40,4 @@ I confirmed compiling and running under Microsoft Visual Studio Community 2019. 
 ## History
 |Version|Release Date|Note|
 |-------|------------|--------|
-|1.0|2019/12/15|Initial version. Playing with computer is possible. The thinker uses traditional method, i.e. min-max method. This is a remade version which I wrote in 1988. Tuning of parameters is not finished yet. Using separated thinking module is not supported yet.|
+|1.0|2019/12/15|Initial version. Playing with computer is possible. The thinker uses traditional method, i.e. min-max method. This is a remade version which I wrote in 1988. Tuning of parameters is not finished yet. Using external thinking module is not supported yet.|
