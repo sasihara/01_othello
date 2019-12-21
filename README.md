@@ -6,6 +6,9 @@
 オセロゲームです。コンピュータとの対戦が可能です。
 なお、このオセロはオーナーがgithubおよびVisual Studioの習熟のため、および最新のAI技術を勉強するために作っています。よって今後はゲームとしての完成度を上げる方向ではなく、実験的な機能が増えていく方向でアップデートしていく予定です。
 
+## 制限事項
+週末の趣味程度で開発しているものなので、完成度は期待しないで下さい。
+
 ## 推奨環境
 Intel Core i5 2.4GHz程度のCPUであれば十分遊べます。
 
@@ -17,12 +20,16 @@ Microsoft Visual Studio Community 2019での動作を確認しております。
 |-------|------------|--------|
 |1.0|2019/12/15|最初のバージョン。コンピュータとの対戦機能付き。コンピュータの思考ルーチンは古典的なミニマックス法を用いたもの。筆者が1988年頃に作ったものをリメイクした程度のもの。パラメータのチューニングはまだほとんど行っていません。外部思考ルーチンにはまだ未対応です。|
 ----------------------------
+
 # Othello(*1)
 (*1) Othello is the trademark of Othello,Co. and MegaHouse.
 
 ## Introduction
 This is an Othello game. It is possible to play with computer.
-This game is developped for studying github, Visual Studio and recent AI algorithms. Therefore future updates is not for completing as a game application but for supporting experimental codes.
+This game is developed for studying github, Visual Studio and recent AI algorithms. Therefore future updates is not for completing as a game application but for supporting experimental codes.
+
+## Restrictions
+This is developed in weekend as my hobby, the qualiy is not guaranteed.
 
 ## Machine Specifications for playning
 Intel Core i5 2.4GHz CPU is enough for playning.
