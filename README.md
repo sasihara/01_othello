@@ -4,6 +4,7 @@
 
 ## はじめに
 オセロゲームです。コンピュータとの対戦が可能です。
+なお、このオセロはオーナーがgithubおよびVisual Studioの習熟のため、および最新のAI技術を勉強するために作っています。よって今後はゲームとしての完成度を上げる方向ではなく、実験的な機能が増えていく方向でアップデートしていく予定です。
 
 ## 推奨環境
 Intel Core i5 2.4GHz程度のCPUであれば十分遊べます。
@@ -21,6 +22,7 @@ Microsoft Visual Studio Community 2019での動作を確認しております。
 
 ## Introduction
 This is an Othello game. It is possible to play with computer.
+This game is developped for studying github, Visual Studio and recent AI algorithms. Therefore future updates is not for completing as a game application but for supporting experimental codes.
 
 ## Machine Specifications for playning
 Intel Core i5 2.4GHz CPU is enough for playning.
