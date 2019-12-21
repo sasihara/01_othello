@@ -31,7 +31,7 @@ This game is developed for studying github, Visual Studio and recent AI algorith
 ## Restrictions
 This is developed in weekend as my hobby, the qualiy is not guaranteed.
 
-## Machine Specifications for playning
+## Machine Specifications required for playning
 Intel Core i5 2.4GHz CPU is enough for playning.
 
 ## Development environment
