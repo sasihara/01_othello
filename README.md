@@ -1,6 +1,6 @@
 # オセロ(*1)
 
-(*1) オセロはOthello,Co.およびMegaHouseの登録商標です。
+(*1) オセロ・Othelloは登録商標です。TM＆© Othello,Co. and MegaHouse
 
 ## はじめに
 オセロゲームです。コンピュータとの対戦が可能です。
@@ -22,7 +22,7 @@ Microsoft Visual Studio Community 2019での動作を確認しております。
 ----------------------------
 
 # Othello(*1)
-(*1) Othello is the trademark of Othello,Co. and MegaHouse.
+(*1) TM＆© Othello,Co. and MegaHouse
 
 ## Introduction
 This is an Othello game. It is possible to play with computer.
