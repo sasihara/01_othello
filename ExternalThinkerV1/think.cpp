@@ -3,6 +3,7 @@
 // This program goes with Othello for Windows Ver 3.00
 
 #include <windows.h>
+#include <stdio.h>
 #include "othello.hpp"
 #include "think.hpp"
 
@@ -106,8 +107,11 @@ int Thinker::findBestPlaceForCurrentPlayer(int lv)
 	DISKCOLORS tmpBoard[8][8];
 	char x = -1, y = -1;
 
+	printf("Thinking");
+
 	for (i = 0; i < 60; i++) {
 		if ((flag = check(board, CheckPosX[i], CheckPosY[i], currentPlayer)) > 0) {
+			printf(".");
 			memcpy(tmpBoard, board, BOARDSIZE_IN_BYTE);
 			turnDisk(tmpBoard, CheckPosX[i], CheckPosY[i], currentPlayer, flag);
 
@@ -119,6 +123,8 @@ int Thinker::findBestPlaceForCurrentPlayer(int lv)
 			}
 		}
 	}
+
+	printf("\n");
 
 	return x * 10 + y;
 }
