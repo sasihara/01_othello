@@ -8,8 +8,10 @@
 #include "framework.h"
 #include "othello.hpp"
 #include "think.hpp"
+#include "externalThinkerHandler.hpp"
+#include <stdio.h>
 
-#define MAX_LOADSTRING 100
+constexpr auto MAX_LOADSTRING = 100;
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
@@ -20,6 +22,7 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 Display display;
 Board board;
 Gaming gaming;
+ExternalThinkerHandler externalThinkerHandler[2];	// 0: Black, 1: White
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -122,7 +125,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    // Initialize board.
    display.SetParams(hWnd);
-   
+
    ShowWindow(hWnd, nCmdShow);
    UpdateWindow(hWnd);
 
@@ -141,46 +144,47 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	int ret;
+
     switch (message)
     {
     case WM_COMMAND:
-        {
-            int wmId = LOWORD(wParam);
-            // Parse the menu selections:
-            switch (wmId)
-            {
-            case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-                break;
-            case IDM_EXIT:
-                DestroyWindow(hWnd);
-                break;
-			case ID_FILE_NEWGAME:
-				DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, Dialog1);
+	{
+		int wmId = LOWORD(wParam);
+		// Parse the menu selections:
+		switch (wmId)
+		{
+		case IDM_ABOUT:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+			break;
+		case IDM_EXIT:
+			DestroyWindow(hWnd);
+			break;
+		case ID_FILE_NEWGAME:
+			DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, Dialog1);
 
-				// Redraw the board
-				display.UpdateBoard(false);
-				break;
-			case ID_PASS:
-				if (gaming.getGameState() == GAME_STATES::STATE_GAMING && gaming.IsPlayerMustPass() == true) {
-					int ret;
+			// Redraw the board
+			display.UpdateBoard(false);
+			break;
+		case ID_PASS:
+			if (gaming.getGameState() == GAME_STATES::STATE_GAMING && gaming.IsPlayerMustPass() == true) {
 
-					// Update board
-					if ((ret = gaming.Pass()) < 0) break;
+				// Update board
+				if ((ret = gaming.Pass()) < 0) break;
 
-					// Check gameover and trigger thinker if necessary.
-					switchToNextPlayer(hWnd);
-				}
-				else {
-					MessageBox(hWnd, TEXT("You can put at least one place."), TEXT("Warning"), MB_OK | MB_ICONWARNING);
-				}
-				break;
-			default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
-            }
-        }
-        break;
-    case WM_PAINT:
+				// Check gameover and trigger thinker if necessary.
+				switchToNextPlayer(hWnd);
+			}
+			else {
+				MessageBox(hWnd, TEXT("You can put at least one place."), TEXT("Warning"), MB_OK | MB_ICONWARNING);
+			}
+			break;
+		default:
+			return DefWindowProc(hWnd, message, wParam, lParam);
+		}
+		break;
+	}
+	case WM_PAINT:
     {
 		display.DrawBoard(gaming.getWindowTitle());
 		break;
@@ -193,7 +197,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// If left mouse button pushed, check the game state.
 		if (gaming.getGameState() == GAME_STATES::STATE_GAMING) {
 			// If game is already started, get the clicked position on the board.
-			int ret;
 			int xPos = (lParam & 0xFFFF) / 100;
 			int yPos = ((lParam >> 16) & 0xFFFF) / 100;
 
@@ -203,7 +206,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			// Check gameover and trigger thinker if necessary.
 			switchToNextPlayer(hWnd);
 		}
-		else {
+		else if (gaming.getGameState() == GAME_STATES::STATE_INIT) {
 			DialogBox(hInst, MAKEINTRESOURCE(IDD_DIALOG1), hWnd, Dialog1);
 
 			// Redraw the board
@@ -216,33 +219,34 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		Thinker thinker;
 		DISKCOLORS workBoard[8][8];
 
-		// Get current board from Board object.
-		board.CopyBoard(workBoard);
-
-		// Set parameters and then call thinker.
-		int ret = thinker.SetParams(gaming.getTurn(), workBoard);
-		ret = thinker.think();
-
-		// Check if thinker passes or not.
-		if (ret >= 0) {
-			int xPos = ret / 10;
-			int yPos = ret % 10;
-
-			// Update board.
-			gaming.PutDisk(xPos, yPos);
+		// If player must pass, skip calling thiner and switch to next player
+		if (gaming.IsPlayerMustPass() == true) {
+			if (gaming.getOpponentPlayerType() == PLAYERTYPE::PLAYERTYPE_USER) {
+				MessageBox(hWnd, TEXT("Thinker passes!!"), TEXT("Message from thinker"), MB_OK);
+			}
+			gaming.Pass();
 		}
-		else {
-			// Check if the player is really allowed to pass or not
-			if (gaming.IsPlayerMustPass() == true) {
-				if (gaming.getOpponentPlayerType() == PLAYERTYPE::PLAYERTYPE_USER) {
-					MessageBox(hWnd, TEXT("Thinker passes!!"), TEXT("Message from thinker"), MB_OK);
-				}
-				gaming.Pass();
+		else{
+			// Get current board from Board object.
+			board.CopyBoard(workBoard);
+
+			// Set parameters and then call thinker.
+			ret = thinker.SetParams(gaming.getTurn(), workBoard);
+			ret = thinker.think();
+
+			// Check if thinker passes or not.
+			if (ret >= 0) {
+				int xPos = ret / 10;
+				int yPos = ret % 10;
+
+				// Update board.
+				gaming.PutDisk(xPos, yPos);
 			}
 			else {
 				// If the player is not allowed to pass, initialize the game.
 				MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
 				gaming.InitGame();
+				break;
 			}
 		}
 
@@ -250,6 +254,39 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		switchToNextPlayer(hWnd);
 		break;
 	}
+	case WM_USER_TRIGGER_EXTERNAL_THINKER:
+	{
+		// If player must pass, skip calling thiner and switch to next player
+		if (gaming.IsPlayerMustPass() == true) {
+			if (gaming.getOpponentPlayerType() == PLAYERTYPE::PLAYERTYPE_USER) {
+				MessageBox(hWnd, TEXT("Thinker passes!!"), TEXT("Message from thinker"), MB_OK);
+			}
+			gaming.Pass();
+
+			// Trigger to next player
+			switchToNextPlayer(hWnd);
+		}
+		else{
+			DISKCOLORS workBoard[8][8];
+
+			// Get current board from Board object.
+			board.CopyBoard(workBoard);
+
+			// Send Think Request to external thinker
+			int ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn())].sendThinkRequest(gaming.getTurn(), workBoard, hWnd);
+
+			// Check the result
+			if (ret < 0) {
+				MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
+				gaming.InitGame();
+				break;
+			}
+		}
+		break;
+	}
+	case WSOCK_SELECT:
+		ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn())].receiveMessages();
+		break;
 	default:
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
@@ -274,71 +311,6 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
-}
-
-//
-//	Function Name: Dialog1
-//	Summary: Callback function when selecting "New Game" in "File" menu.
-//	
-INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	UNREFERENCED_PARAMETER(lParam);
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		// Check to "User" for Black and White
-		SendMessage(GetDlgItem(hDlg, IDC_RADIO1), BM_SETCHECK, BST_CHECKED, 0);
-		SendMessage(GetDlgItem(hDlg, IDC_RADIO4), BM_SETCHECK, BST_CHECKED, 0);
-		return (INT_PTR)TRUE;
-
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK) {
-			// Check radio buttons for black
-			if (SendMessage(GetDlgItem(hDlg, IDC_RADIO1), BM_GETCHECK, 0, 0) == BST_CHECKED) {
-				gaming.setPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK, PLAYERTYPE::PLAYERTYPE_USER);
-			}
-			else if (SendMessage(GetDlgItem(hDlg, IDC_RADIO2), BM_GETCHECK, 0, 0) == BST_CHECKED) {
-				gaming.setPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK, PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED);
-			}
-			else if (SendMessage(GetDlgItem(hDlg, IDC_RADIO3), BM_GETCHECK, 0, 0) == BST_CHECKED) {
-				gaming.setPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK, PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL);
-			}
-
-			// Check radio buttons for white
-			if (SendMessage(GetDlgItem(hDlg, IDC_RADIO4), BM_GETCHECK, 0, 0) == BST_CHECKED) {
-				gaming.setPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE, PLAYERTYPE::PLAYERTYPE_USER);
-			}
-			else if (SendMessage(GetDlgItem(hDlg, IDC_RADIO5), BM_GETCHECK, 0, 0) == BST_CHECKED) {
-				gaming.setPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE, PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED);
-			}
-			else if (SendMessage(GetDlgItem(hDlg, IDC_RADIO6), BM_GETCHECK, 0, 0) == BST_CHECKED) {
-				gaming.setPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE, PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL);
-			}
-
-			// Initialize variables, board and then start the game
-			gaming.InitGame();
-			gaming.StartGame();
-
-			// Send to WndProc to trigger computer's thinker if black is set to PLAYERTYPE_COMPUTER_EMBEDED
-			switch (gaming.getCurrentPlayerType()) {
-			case PLAYERTYPE::PLAYERTYPE_USER:
-				break;
-			case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
-				PostMessage(GetWindow(hDlg, GW_OWNER), WM_USER_TRIGGER_THINKER, 0, 0);
-				break;
-			case PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL:
-				break;
-			}
-		}
-
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-		{
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
-		}
-		break;
-	}
-	return (INT_PTR)FALSE;
 }
 
 // ---------------------------- New functions are defined below ------------------------------------
@@ -396,11 +368,16 @@ void switchToNextPlayer(HWND hWnd)
 	else {
 		//switch (PlayerInfo[turn & 1].PlayerType) {
 		switch (gaming.getCurrentPlayerType()) {
+		case PLAYERTYPE::PLAYERTYPE_USER:
+			gaming.setState(GAME_STATES::STATE_GAMING);
+			break;
 		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
+			gaming.setState(GAME_STATES::STATE_GAMING_WAITING_RESP);
 			PostMessage(hWnd, WM_USER_TRIGGER_THINKER, 0, 0);
 			break;
 		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL:
-			// Need to add codes later.
+			gaming.setState(GAME_STATES::STATE_GAMING_WAITING_RESP);
+			PostMessage(hWnd, WM_USER_TRIGGER_EXTERNAL_THINKER, 0, 0);
 			break;
 		default:
 			break;
@@ -851,20 +828,37 @@ int Gaming::InitGame()
 	return 0;
 }
 
+////
+////	Function Name: StartGame
+////	Summary: Start the game.
+////	
+////	In:
+////		No parameters.
+////
+////	Return:
+////		0: Succeed.
+////
+//int Gaming::StartGame()
+//{
+//	// Change game state
+//	state = GAME_STATES::STATE_GAMING;
+//	return 0;
+//}
+
 //
-//	Function Name: StartGame
-//	Summary: Start the game.
+//	Function Name: SetState
+//	Summary: Change the state.
 //	
 //	In:
-//		No parameters.
+//		newState : The new state.
 //
 //	Return:
 //		0: Succeed.
 //
-int Gaming::StartGame()
+int Gaming::setState(GAME_STATES newState)
 {
 	// Change game state
-	state = GAME_STATES::STATE_GAMING;
+	state = newState;
 	return 0;
 }
 
@@ -1054,7 +1048,7 @@ int Gaming::setPlayerType(PLAYERINDEX player, PLAYERTYPE playerType)
 //
 LPCTSTR Gaming::getWindowTitle()
 {
-	if (state == GAME_STATES::STATE_GAMING) {
+	if (state == GAME_STATES::STATE_GAMING || state == GAME_STATES::STATE_GAMING_WAITING_RESP) {
 		switch (getCurrentColor()) {
 		case DISKCOLORS::COLOR_BLACK:
 			if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED || getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
