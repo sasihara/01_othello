@@ -127,5 +127,5 @@ public:
 // Functions
 void displayGameOver(HWND hWnd);
 void switchToNextPlayer(HWND hWnd);
-void checkExternalThinker(HWND hDlg, int IDCHostName, int IDCPort, PLAYERINDEX playerIndex);
+int checkExternalThinker(HWND hDlg, int IDCHostName, int IDCPort, PLAYERINDEX playerIndex);
 void StartGame(HWND hDlg);

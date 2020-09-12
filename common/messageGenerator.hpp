@@ -15,7 +15,7 @@ public:
 private:
 	bool initilized = false;
 	bool failed = false;
-	char* sendData;
-	int sendDataMaxSize;
-	int head;
+	char* sendData = NULL;
+	int sendDataMaxSize = 0;
+	int head = 0;
 };

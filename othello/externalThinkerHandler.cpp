@@ -74,8 +74,6 @@ int ExternalThinkerHandler::init(char* _hostname, int _port, HWND _hWnd)
 {
 	state = PROTOCOLSTATES::INIT;
 
-	fd_set fds, readfds;
-
 	// Store specified hostname and port
 	strcpy_s(hostname, 256, _hostname);
 	port = _port;
@@ -217,7 +215,7 @@ int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[8][8], H
 
 		// Send Think Request
 		//int nSize = sendto(sock, (const char*)message, messageLength, 0, res->ai_addr, res->ai_addrlen);
-		int nSize = sendto(sock, (const char*)message, messageLength, 0, res->ai_addr, res->ai_addrlen);
+		int nSize = sendto(sock, (const char*)message, messageLength, 0, res->ai_addr, (int)res->ai_addrlen);
 
 		// Check the result
 		if (nSize == SOCKET_ERROR) {

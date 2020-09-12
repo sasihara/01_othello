@@ -15,6 +15,7 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	UNREFERENCED_PARAMETER(lParam);
 	static DIALOG_STATES dialogState = DIALOG_STATES::STATE_INIT;
+	int ret;
 
 	switch (message)
 	{
@@ -61,29 +62,27 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				gaming.setPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE, PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL);
 			}
 
-			// Check for Edit boxes if the player type is PLAYERTYPE_COMPUTER_EXTERNAL
-			TCHAR sHostname[256];
-			TCHAR sPort[6];
-			char hostname[256];
-			int port;
-
 			// Check edit boxes to input external thinker for black
 			// If valid strings are set, check if valid response is received from external thinker or not.
 			if (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK) == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
 				// Fetch the input data for black and send Information Request
-				checkExternalThinker(hDlg, IDC_EDIT1, IDC_EDIT2, PLAYERINDEX::PLAYERINDEX_BLACK);
+				ret = checkExternalThinker(hDlg, IDC_EDIT1, IDC_EDIT2, PLAYERINDEX::PLAYERINDEX_BLACK);
 
-				// Update state
-				dialogState = DIALOG_STATES::STATE_WAITING_INFORESP_BLACK;
+				if (ret == 0) {
+					// Update state
+					dialogState = DIALOG_STATES::STATE_WAITING_INFORESP_BLACK;
+				}
 			}
 			// Check edit boxes to input external thinker for white
 			// If valid strings are set, check if valid response is received from external thinker or not.
 			else if (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE) == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
 				// Fetch the input data for white and send Information Request
-				checkExternalThinker(hDlg, IDC_EDIT3, IDC_EDIT4, PLAYERINDEX::PLAYERINDEX_WHITE);
+				ret = checkExternalThinker(hDlg, IDC_EDIT3, IDC_EDIT4, PLAYERINDEX::PLAYERINDEX_WHITE);
 
-				// Update state
-				dialogState = DIALOG_STATES::STATE_WAITING_INFORESP_WHITE;
+				if (ret == 0) {
+					// Update state
+					dialogState = DIALOG_STATES::STATE_WAITING_INFORESP_WHITE;
+				}
 			}
 			else {
 				// Update state
@@ -126,10 +125,12 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				// If white is not external thinker, start gaming.
 				if (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE) == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
 					// Call ExternalThinkerHandler.init() for white
-					checkExternalThinker(hDlg, IDC_EDIT3, IDC_EDIT4, PLAYERINDEX::PLAYERINDEX_WHITE);
+					ret = checkExternalThinker(hDlg, IDC_EDIT3, IDC_EDIT4, PLAYERINDEX::PLAYERINDEX_WHITE);
 
-					// Update state
-					dialogState = DIALOG_STATES::STATE_WAITING_INFORESP_WHITE;
+					if (ret == 0) {
+						// Update state
+						dialogState = DIALOG_STATES::STATE_WAITING_INFORESP_WHITE;
+					}
 				}
 				else {
 					// Start the game
@@ -230,9 +231,13 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 //		playerIndex		Player (Black or White)
 //
 //	Return:
-//		None
+//		0	Success
+//		-1	Hostname and/or port number is/are not specified.
+//		-2	Hostname and/or port number is/are wrong.
+//		-3	Failed to prepare sockets to the hostname and the port number.
+//		-4	Faeild to send Information Request.
 //
-void checkExternalThinker(HWND hDlg, int IDCHostName, int IDCPort, PLAYERINDEX playerIndex)
+int checkExternalThinker(HWND hDlg, int IDCHostName, int IDCPort, PLAYERINDEX playerIndex)
 {
 	// Check for Edit boxes if the player type is PLAYERTYPE_COMPUTER_EXTERNAL
 	TCHAR sHostname[256];
@@ -247,7 +252,7 @@ void checkExternalThinker(HWND hDlg, int IDCHostName, int IDCPort, PLAYERINDEX p
 	// Check if both hostname and port are specified or not
 	if (_tcslen(sHostname) == 0 || _tcslen(sPort) == 0) {
 		MessageBox(hDlg, TEXT("Hostname and Port must be specified for Black."), TEXT("Error"), MB_OK | MB_ICONWARNING);
-		return;
+		return -1;
 	}
 
 	// Convert sHostname to hostname, sPort to port
@@ -267,18 +272,18 @@ void checkExternalThinker(HWND hDlg, int IDCHostName, int IDCPort, PLAYERINDEX p
 	case -1:
 		wsprintf(errorMessage, TEXT("Valid Hostname and Port must be specified for %s."), playerIndex == PLAYERINDEX::PLAYERINDEX_BLACK ? TEXT("Black") : TEXT("White"));
 		MessageBox(hDlg, errorMessage, TEXT("Error"), MB_OK | MB_ICONWARNING);
-		return;
+		return -2;
 	case -2:
 	case -3:
 		wsprintf(errorMessage, TEXT("External thinker for %s is not ready."), playerIndex == PLAYERINDEX::PLAYERINDEX_BLACK ? TEXT("Black") : TEXT("White"));
 		MessageBox(hDlg, errorMessage, TEXT("Error"), MB_OK | MB_ICONWARNING);
-		return;
+		return -3;
 	}
 
 	// Send Information Request to the specified external thinker
 	ret = externalThinkerHandler[(size_t)playerIndex].sendInformationRequest();
 
-	if (ret != 0) return;
+	if (ret != 0) return -4;
 
 	// Set timer for waiting the response
 	UINT_PTR TimerIdWaitInfoResp;
@@ -295,6 +300,8 @@ void checkExternalThinker(HWND hDlg, int IDCHostName, int IDCPort, PLAYERINDEX p
 		// If setting timer failed, wait here but screen blocks
 		Sleep(WAIT_TIME_INFO_RESP * 5000);
 	}
+
+	return 0;
 }
 
 //
