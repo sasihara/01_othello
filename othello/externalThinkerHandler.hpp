@@ -19,7 +19,8 @@ private:
 public:
 	ExternalThinkerHandler();
 	~ExternalThinkerHandler();
-	int init(char* _hostname, int _port, HWND _hWnd);
+	int init();
+	int setParam(char* _hostname, int _port, HWND _hWnd);
 	int setWindowHandle(HWND _hwnd);
 	int sendInformationRequest();
 	int sendThinkRequest(int turn, DISKCOLORS board[8][8], HWND _hWnd);

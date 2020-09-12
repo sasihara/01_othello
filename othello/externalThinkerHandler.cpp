@@ -24,19 +24,7 @@ extern Gaming gaming;
 //
 ExternalThinkerHandler::ExternalThinkerHandler()
 {
-	// Initialize private variables
-	state = PROTOCOLSTATES::INIT;
-	hostname[0] = NULL;
-	port = 0;
-	sock = -1;
-	currentReqId = 0;
-	TimerIdWaitThinkAccept = 0;
-	currentReqId = currentReqId = 0;
-
-	memset(board, 0, sizeof(board));
-
-	// Initialization for socket
-	if (WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) return;
+	this->init();
 }
 
 //
@@ -54,10 +42,41 @@ ExternalThinkerHandler::~ExternalThinkerHandler()
 	freeaddrinfo(res0);
 }
 
-
 //
 //	Function Name: init
-//	Summary: Initialize state and prepare UDP socket for external thinker
+//	Summary: Initialize External thinker handler
+//	
+//	In:
+//		None
+//
+//	Return:
+//		0:	Success
+//		-1:	Host name is wrong.
+//		-2:	Failed to create socket. Maybe port is already used.
+//		-3:	Failed in WSAASyncSelect()
+//
+int ExternalThinkerHandler::init()
+{
+	// Initialize private variables
+	state = PROTOCOLSTATES::INIT;
+	hostname[0] = NULL;
+	port = 0;
+	sock = -1;
+	currentReqId = 0;
+	TimerIdWaitThinkAccept = 0;
+	currentReqId = currentReqId = 0;
+
+	memset(board, 0, sizeof(board));
+
+	// Initialization for socket
+	if (WSAStartup(MAKEWORD(2, 0), &wsaData) != 0) return -1;
+
+	return 0;
+}
+
+//
+//	Function Name: setParam
+//	Summary: Prepare UDP socket for external thinker
 //	
 //	In:
 //		_hostname:	Host name in string which external thinker is running on.
@@ -70,10 +89,8 @@ ExternalThinkerHandler::~ExternalThinkerHandler()
 //		-2:	Failed to create socket. Maybe port is already used.
 //		-3:	Failed in WSAASyncSelect()
 //
-int ExternalThinkerHandler::init(char* _hostname, int _port, HWND _hWnd)
+int ExternalThinkerHandler::setParam(char* _hostname, int _port, HWND _hWnd)
 {
-	state = PROTOCOLSTATES::INIT;
-
 	// Store specified hostname and port
 	strcpy_s(hostname, 256, _hostname);
 	port = _port;
@@ -102,6 +119,8 @@ int ExternalThinkerHandler::init(char* _hostname, int _port, HWND _hWnd)
 	if (WSAAsyncSelect(sock, _hWnd, WSOCK_SELECT, FD_READ) == SOCKET_ERROR) {
 		return -3;
 	}
+
+	state = PROTOCOLSTATES::SOCKET_READY;
 
 	return 0;
 }
@@ -182,6 +201,7 @@ int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[8][8], H
 {
 	switch (state) {
 	case PROTOCOLSTATES::INIT:
+	case PROTOCOLSTATES::SOCKET_READY:
 		break;
 	case PROTOCOLSTATES::THINKER_AVAILABLE:
 	{
