@@ -145,6 +145,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int ret;
+	static int numTransmissionThinkRequest = 0;
 
     switch (message)
     {
@@ -248,6 +249,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				gaming.InitGame();
 				break;
 			}
+
+			// Wait for a moment
+			Sleep(5000);
+
+			// Remove all key and mouse events during thinking
+			MSG bufferdMessages;
+			while (PeekMessage(&bufferdMessages, hWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
+			while (PeekMessage(&bufferdMessages, hWnd, WM_MOUSEFIRST, WM_MOUSELAST, PM_REMOVE));
 		}
 
 		// Check gameover and trigger thinker if necessary.
@@ -281,11 +290,67 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				gaming.InitGame();
 				break;
 			}
+			else {
+				numTransmissionThinkRequest = 1;
+			}
 		}
 		break;
 	}
 	case WSOCK_SELECT:
 		ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn())].receiveMessages();
+		break;
+	case WM_TIMER:
+		// Check Timer ID
+		switch ((TIMERID)wParam) {
+		case TIMERID::WAIT_THINK_ACCEPT:
+			// Kill the timer
+			KillTimer(hWnd, (UINT_PTR)TIMERID::WAIT_THINK_ACCEPT);
+
+			// Increment retransmission counter
+			numTransmissionThinkRequest++;
+
+			if (numTransmissionThinkRequest <= MAX_NUM_TRANSMISSION_THINK_REQUEST) {
+				// Resend Think Request
+				ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn())].recendMessage();
+
+				// Check the result
+				if (ret < 0) {
+					MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
+					gaming.InitGame();
+				}
+			}
+			else {
+				// Retry out
+				MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
+				gaming.InitGame();
+			}
+
+			break;
+		case TIMERID::WAIT_THINK_RESPONSE:
+			// Kill the timer
+			KillTimer(hWnd, (UINT_PTR)TIMERID::WAIT_THINK_RESPONSE);
+
+			// Increment retransmission counter
+			numTransmissionThinkRequest++;
+
+			if (numTransmissionThinkRequest <= MAX_NUM_TRANSMISSION_THINK_REQUEST) {
+				// Resend Think Request
+				ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn())].recendMessage();
+
+				// Check the result
+				if (ret < 0) {
+					MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
+					gaming.InitGame();
+				}
+			}
+			else {
+				// Retry out
+				MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
+				gaming.InitGame();
+			}
+
+			break;
+		}
 		break;
 	default:
         return DefWindowProc(hWnd, message, wParam, lParam);

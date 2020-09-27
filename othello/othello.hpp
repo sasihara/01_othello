@@ -11,7 +11,10 @@
 
 // Constant
 #define BOARDSIZE_IN_BYTE	(sizeof(DISKCOLORS) * 64)
-#define WAIT_TIME_INFO_RESP		5
+#define WAIT_TIME_INFO_RESP			5
+#define WAIT_TIME_THINK_ACCEPT		5
+#define WAIT_TIME_THINK_RESPONSE		120
+#define	MAX_NUM_TRANSMISSION_THINK_REQUEST	3
 
 // Messages
 #define	WM_USER_TRIGGER_THINKER				(WM_USER + 1)
@@ -127,5 +130,5 @@ public:
 // Functions
 void displayGameOver(HWND hWnd);
 void switchToNextPlayer(HWND hWnd);
-void checkExternalThinker(HWND hDlg, int IDCHostName, int IDCPort, PLAYERINDEX playerIndex);
+int checkExternalThinker(HWND hDlg, int IDCHostName, int IDCPort, PLAYERINDEX playerIndex);
 void StartGame(HWND hDlg);

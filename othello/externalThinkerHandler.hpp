@@ -1,5 +1,8 @@
 #pragma once
 #include "externalThinkerMessages.hpp"
+#include "messageGenerator.hpp"
+
+#define	MAX_RETRANS			3
 
 // Class
 class ExternalThinkerHandler {
@@ -15,13 +18,19 @@ private:
 	int currentReqId;
 	HWND hWnd;
 	UINT_PTR TimerIdWaitThinkAccept;
+	UINT_PTR TimerIdWaitThinkResponse;
+	int messageLength;
+	char message[MAX_MESSAGE_LENGTH];
+	int numRetrans = 0;
 
 public:
 	ExternalThinkerHandler();
 	~ExternalThinkerHandler();
-	int init(char* _hostname, int _port, HWND _hWnd);
+	int init();
+	int setParam(char* _hostname, int _port, HWND _hWnd);
 	int setWindowHandle(HWND _hwnd);
 	int sendInformationRequest();
 	int sendThinkRequest(int turn, DISKCOLORS board[8][8], HWND _hWnd);
 	int receiveMessages();
+	int recendMessage();
 };
