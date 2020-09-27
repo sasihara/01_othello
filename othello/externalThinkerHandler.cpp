@@ -75,6 +75,45 @@ int ExternalThinkerHandler::init()
 }
 
 //
+//	Function Name: recendMessage
+//	Summary: Resend the previous message and transit to PROTOCOLSTATES::WAITING_THINK_ACCEPT_RESP
+//	
+//	In:
+//		None
+//
+//	Return:
+//		0:	Success
+//		-1:	Socket error.
+//		-2:	Failed to set the timer.
+//
+int ExternalThinkerHandler::recendMessage()
+{
+	if (numRetrans < MAX_RETRANS) {
+		// Resend previous message
+		int nSize = sendto(sock, (const char*)message, messageLength, 0, res->ai_addr, (int)res->ai_addrlen);
+
+		// Check the result
+		if (nSize == SOCKET_ERROR) {
+			return -1;
+		}
+
+		// Start WAIT_THINK_ACCEPT timer
+		TimerIdWaitThinkAccept = SetTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_ACCEPT, WAIT_TIME_THINK_ACCEPT * 1000, NULL);
+
+		if (TimerIdWaitThinkAccept == 0) {
+			return -2;
+		}
+
+		numRetrans++;
+
+		// Transit to WAIT_THINK_ACCEPT state
+		state = PROTOCOLSTATES::WAITING_THINK_ACCEPT_RESP;
+	}
+
+	return 0;
+}
+
+//
 //	Function Name: setParam
 //	Summary: Prepare UDP socket for external thinker
 //	
@@ -164,8 +203,6 @@ int ExternalThinkerHandler::sendInformationRequest()
 {
 	// Information Request can be sent in any states, so checking state is not necessary here
 	// Build Information Request message
-	int messageLength;
-	char message[MAX_MESSAGE_LENGTH];
 	MessageGenerator messageGenerator;
 
 	messageGenerator.SetParams(message, MAX_MESSAGE_LENGTH);
@@ -193,9 +230,9 @@ int ExternalThinkerHandler::sendInformationRequest()
 //	Return:
 //		0	Success
 //		-1	Failed to set socket to WSA socket.
-//		-2	Failed to set timer.
-//		-3	Failed to set WSASyncSelect
-//		-4	Failed to send ThinkRequest message
+//		-2	Failed to set WSASyncSelect
+//		-3	Failed to send ThinkRequest message
+//		-4	Failed to set timer.
 //
 int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[8][8], HWND _hWnd)
 {
@@ -208,8 +245,6 @@ int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[8][8], H
 		// Get new ID, transmit Think Request, start timer and then 
 		// transit to WAITING_THINK_ACCEPT_RESP to wait for Think Accept.
 		// At first, prepare memory for the sending message.
-		int messageLength;
-		char message[MAX_MESSAGE_LENGTH];
 		MessageGenerator messageGenerator;
 
 		messageGenerator.SetParams(message, MAX_MESSAGE_LENGTH);
@@ -221,16 +256,9 @@ int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[8][8], H
 		// Check if building the message finished successfully
 		if ((messageLength = messageGenerator.getSize()) < 0) return -1;
 
-		// Set timer for waiting the response
-		TimerIdWaitThinkAccept = SetTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_ACCEPT, WAIT_TIME_THINK_ACCEPT * 1000, NULL);
-
-		if (TimerIdWaitThinkAccept == 0) {
-			return -2;
-		}
-
 		// Set to receive ivents for the socket as WSA messages
 		if (WSAAsyncSelect(sock, _hWnd, WSOCK_SELECT, FD_READ) == SOCKET_ERROR) {
-			return -3;
+			return -2;
 		}
 
 		// Send Think Request
@@ -239,8 +267,18 @@ int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[8][8], H
 
 		// Check the result
 		if (nSize == SOCKET_ERROR) {
+			return -3;
+		}
+
+		// Start WAIT_THINK_ACCEPT timer
+		TimerIdWaitThinkAccept = SetTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_ACCEPT, WAIT_TIME_THINK_ACCEPT * 1000, NULL);
+
+		if (TimerIdWaitThinkAccept == 0) {
 			return -4;
 		}
+
+		// Initialize retransmission number
+		numRetrans = 0;
 
 		// Transit to WAITING_THINK_ACCEPT_RESP
 		state = PROTOCOLSTATES::WAITING_THINK_ACCEPT_RESP;
@@ -276,6 +314,7 @@ int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[8][8], H
 //		-4		Getting ID was failed.
 //		-5		Getting the place was failed.
 //		-6		Information Response message was received in an unexpected state
+//		-7		Failed to set timer after receiving Think Accept
 //
 int ExternalThinkerHandler::receiveMessages()
 {
@@ -309,6 +348,16 @@ int ExternalThinkerHandler::receiveMessages()
 		case MESSAGETYPE::THINK_ACCEPT:
 			switch (state) {
 			case PROTOCOLSTATES::WAITING_THINK_ACCEPT_RESP:
+				// Cancel the timer
+				KillTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_ACCEPT);
+
+				// Start WAIT_THINK_RESPONSE timer
+				TimerIdWaitThinkResponse = SetTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_RESPONSE, WAIT_TIME_THINK_RESPONSE * 1000, NULL);
+
+				if (TimerIdWaitThinkResponse == 0) {
+					return -7;
+				}
+
 				// Transit to WAITING_THINK_RESP
 				state = PROTOCOLSTATES::WAITING_THINK_RESP;
 				break;
@@ -319,7 +368,13 @@ int ExternalThinkerHandler::receiveMessages()
 		case MESSAGETYPE::THINK_REJECT:
 			switch (state) {
 			case PROTOCOLSTATES::WAITING_THINK_ACCEPT_RESP:
-				// Currently Unsupported Feature
+				// Cancel the timer
+				KillTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_RESPONSE);
+
+				// Transit to INIT state
+				MessageBox(hWnd, TEXT("Rejected by external thinker. Finish this game."), TEXT("Internal Error"), MB_OK | MB_ICONERROR);
+				state = PROTOCOLSTATES::THINKER_AVAILABLE;
+				gaming.InitGame();
 				break;
 			default:
 				break;
@@ -335,24 +390,24 @@ int ExternalThinkerHandler::receiveMessages()
 					throw -4;
 				}
 
+				// Cancel the timer
+				KillTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_RESPONSE);
+
 				// Get the position
 				int xPos, yPos;
 				if (messageParser.getTLVParamsPlace(&xPos, &yPos) != 0) {
 					throw -5;
 				}
 
-				// Transit to INIT state
-				state = PROTOCOLSTATES::THINKER_AVAILABLE;
-
 				// Update board.
-				if (gaming.PutDisk(xPos, yPos) < 0) {
-					MessageBox(hWnd, TEXT("A wrong place has chosen by the thinker. Finish this game."), TEXT("Internal Error"), MB_OK | MB_ICONERROR);
-					gaming.InitGame();
+				// If the place is wrong, ignore it because this response can be the response for an old request
+				if (gaming.PutDisk(xPos, yPos) >= 0) {
+					// Transit to INIT state
+					state = PROTOCOLSTATES::THINKER_AVAILABLE;
+
+					// Check gameover and trigger thinker if necessary.
+					switchToNextPlayer(hWnd);
 				}
-
-				// Check gameover and trigger thinker if necessary.
-				switchToNextPlayer(hWnd);
-
 				break;
 			default:
 				break;

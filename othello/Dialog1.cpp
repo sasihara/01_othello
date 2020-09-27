@@ -192,8 +192,9 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				break;
 			case DIALOG_STATES::STATE_WAITING_INFORESP_BLACK:
 			{
-				MessageBox(hDlg, TEXT("External thinker for Black is not ready."), TEXT("Error"), MB_OK | MB_ICONWARNING);
+				KillTimer(hDlg, (INT_PTR)TIMERID::WAIT_INFO_RESP);
 				dialogState = DIALOG_STATES::STATE_INIT;
+				MessageBox(hDlg, TEXT("External thinker for Black is not ready."), TEXT("Error"), MB_OK | MB_ICONWARNING);
 
 				// Enable "OK" and "Cancel" button
 				HWND button = GetDlgItem(hDlg, IDOK);
@@ -204,8 +205,9 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			case DIALOG_STATES::STATE_WAITING_INFORESP_WHITE:
 			{
-				MessageBox(hDlg, TEXT("External thinker for White is not ready."), TEXT("Error"), MB_OK | MB_ICONWARNING);
+				KillTimer(hDlg, (INT_PTR)TIMERID::WAIT_INFO_RESP);
 				dialogState = DIALOG_STATES::STATE_INIT;
+				MessageBox(hDlg, TEXT("External thinker for White is not ready."), TEXT("Error"), MB_OK | MB_ICONWARNING);
 
 				// Disable "OK" and "Cancel" button
 				HWND button = GetDlgItem(hDlg, IDOK);
