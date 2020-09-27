@@ -25,23 +25,3 @@ othello.slnとexternalThinker_v1.slnの2つのプロジェクトファイルが�
 |2.0|2020/9/27|異なるバージョン間の思考ルーチン同士で対戦ができるようにするため、思考ルーチン部分だけを別モジュールとした外部思考ルーチンに対応しました。今回サンプルとして格納した外部思考ルーチンのプロジェクトファイルをexternalThinker_v1.slnとして格納しています。このプロジェクトを開いてコンパイルし実行させて下さい。実行させると、外部思考ルーチンはデフォルトでUDPのポート番号60001でメッセージ受信を待機します。オセロ本体と同じマシンで外部思考ルーチンを動作させた場合は、オセロ本体の設定で"Computer(External)"のホスト名に"localhost"、ポート番号に"60001"とセットすると、この外部思考ルーチンを使って思考させることができます。もちろん外部思考ルーチンをネットワークにつながった別のマシン上で動作させても良いです。その場合はホスト名にそのマシンのホスト名を入れれば良いはずです。|
 ----------------------------
 
-# Othello(*1)
-(*1) TM＆© Othello,Co. and MegaHouse
-
-## Introduction
-This is an Othello game. It is possible to play with computer.
-This game is developed for studying github, Visual Studio and recent AI algorithms. Therefore future updates is not for completing as a game application but for supporting experimental codes.
-
-## Restrictions
-This is developed in weekend as my hobby, the qualiy is not guaranteed.
-
-## Machine Specifications required for playning
-Intel Core i5 2.4GHz CPU is enough for playning.
-
-## Development environment
-I confirmed compiling and running under Microsoft Visual Studio Community 2019. I don't confirm with other versions of Visual Studio, but maybe okey because only basic windows APIs are used.
-
-## History
-|Version|Release Date|Note|
-|-------|------------|--------|
-|1.0|2019/12/15|Initial version. Playing with computer is possible. The thinker uses traditional method, i.e. min-max method. This is a remade version which I wrote in 1988. Tuning of parameters is not finished yet. Using external thinking module is not supported yet.|
