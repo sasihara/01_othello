@@ -39,7 +39,7 @@
     <ClInclude Include="externalThinkerHandler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="externalThinkerMessages.hpp">
+    <ClInclude Include="..\common\externalThinkerMessages.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -158,10 +158,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\externalThinkerMessages.hpp" />
     <ClInclude Include="..\common\messageGenerator.hpp" />
     <ClInclude Include="..\common\messageParser.hpp" />
     <ClInclude Include="externalThinkerHandler.hpp" />
-    <ClInclude Include="externalThinkerMessages.hpp" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="othello.hpp" />
     <ClInclude Include="Resource.h" />
