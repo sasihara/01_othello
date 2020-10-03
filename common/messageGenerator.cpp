@@ -1,6 +1,5 @@
 #include "externalThinkerMessages.hpp"
 #include "messageGenerator.hpp"
-#include "othello.hpp"
 
 //
 //	Function Name: SetParams
