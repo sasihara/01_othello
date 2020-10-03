@@ -390,9 +390,6 @@ int ExternalThinkerHandler::receiveMessages()
 					throw -4;
 				}
 
-				// Cancel the timer
-				KillTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_RESPONSE);
-
 				// Get the position
 				int xPos, yPos;
 				if (messageParser.getTLVParamsPlace(&xPos, &yPos) != 0) {
@@ -402,6 +399,9 @@ int ExternalThinkerHandler::receiveMessages()
 				// Update board.
 				// If the place is wrong, ignore it because this response can be the response for an old request
 				if (gaming.PutDisk(xPos, yPos) >= 0) {
+					// Cancel the timer
+					KillTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_RESPONSE);
+
 					// Transit to INIT state
 					state = PROTOCOLSTATES::THINKER_AVAILABLE;
 
