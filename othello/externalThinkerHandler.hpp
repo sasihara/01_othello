@@ -2,7 +2,9 @@
 #include "externalThinkerMessages.hpp"
 #include "messageGenerator.hpp"
 
-#define	MAX_RETRANS			3
+#define LOCAL_PORT_NUM_STR		"60001"
+#define	WAIT_TIME_THINK_ACCEPT	5	// seconds	
+#define	MAX_RETRANS				3
 
 // Class
 class ExternalThinkerHandler {

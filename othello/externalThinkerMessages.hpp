@@ -3,8 +3,6 @@
 
 // define
 #define	PROTOCOL_VERSION	1
-#define LOCAL_PORT_NUM_STR	"60001"
-#define	WAIT_TIME_THINK_ACCEPT	5	// seconds	
 
 // enum
 enum class PROTOCOLSTATES {
