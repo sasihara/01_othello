@@ -3,6 +3,13 @@
 // define
 #define	PROTOCOL_VERSION	1
 
+// Constant
+#define BOARDSIZE_IN_BYTE	(sizeof(DISKCOLORS) * 64)
+
+// Macros
+#define	CURRENTPLAYER(turn)			(DISKCOLORS)((turn & 1) + 1)			// turn = even : 1 (COLOR_BLACK), turn = odd : 2 (COLOR_WHITE)
+#define OPPONENT(diskcolor)			(DISKCOLORS)(((int)diskcolor & 1) + 1)	// diskcolor = COLOR_BLACK : 2 (COLOR_WHITE), diskcolor = COLOR_WHITE : 1 (COLOR_BLACK)
+
 // enum
 enum class DISKCOLORS {
 	COLOR_NONE = 0,		// No disk

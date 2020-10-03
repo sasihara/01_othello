@@ -11,7 +11,6 @@
 #include "externalThinkerMessages.hpp"
 
 // Constant
-#define BOARDSIZE_IN_BYTE	(sizeof(DISKCOLORS) * 64)
 #define WAIT_TIME_INFO_RESP			5
 #define WAIT_TIME_THINK_ACCEPT		5
 #define WAIT_TIME_THINK_RESPONSE		120
@@ -23,8 +22,6 @@
 #define WSOCK_SELECT						(WM_USER + 3)
 
 // Macros
-#define	CURRENTPLAYER(turn)			(DISKCOLORS)((turn & 1) + 1)			// turn = even : 1 (COLOR_BLACK), turn = odd : 2 (COLOR_WHITE)
-#define OPPONENT(diskcolor)			(DISKCOLORS)(((int)diskcolor & 1) + 1)	// diskcolor = COLOR_BLACK : 2 (COLOR_WHITE), diskcolor = COLOR_WHITE : 1 (COLOR_BLACK)
 #define ColorToPlayerIndex(color)	(int)(color - 1)
 #define TurnToPlayerIndex(turn)		(turn % 2)
 
