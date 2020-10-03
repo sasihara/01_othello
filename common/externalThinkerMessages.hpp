@@ -1,19 +1,14 @@
 #pragma once
-#include <WinSock2.h>
 
 // define
 #define	PROTOCOL_VERSION	1
 
 // enum
-enum class PROTOCOLSTATES {
-	INIT = 0,
-	SOCKET_READY,
-	WAITING_INFORMATION_RESP,
-	THINKER_AVAILABLE,
-	WAITING_THINK_STOP_RESP,
-	WAITING_THINK_ACCEPT_RESP,
-	WAITING_THINK_RESP,
-	PROTOCOLSTATES_LIMIT
+enum class DISKCOLORS {
+	COLOR_NONE = 0,		// No disk
+	COLOR_BLACK,		// Black disk
+	COLOR_WHITE,		// White disk
+	COLOR_OUTOFBOAD		// Out of the board (used only in think.cpp)
 };
 
 enum class MESSAGETYPE {

@@ -1,10 +1,23 @@
 #pragma once
+#include <WinSock2.h>
 #include "externalThinkerMessages.hpp"
 #include "messageGenerator.hpp"
 
 #define LOCAL_PORT_NUM_STR		"60001"
 #define	WAIT_TIME_THINK_ACCEPT	5	// seconds	
 #define	MAX_RETRANS				3
+
+// enum
+enum class PROTOCOLSTATES {
+	INIT = 0,
+	SOCKET_READY,
+	WAITING_INFORMATION_RESP,
+	THINKER_AVAILABLE,
+	WAITING_THINK_STOP_RESP,
+	WAITING_THINK_ACCEPT_RESP,
+	WAITING_THINK_RESP,
+	PROTOCOLSTATES_LIMIT
+};
 
 // Class
 class ExternalThinkerHandler {

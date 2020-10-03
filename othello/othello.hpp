@@ -6,8 +6,9 @@
 //
 
 #pragma once
-
+#include "windows.h"
 #include "resource.h"
+#include "externalThinkerMessages.hpp"
 
 // Constant
 #define BOARDSIZE_IN_BYTE	(sizeof(DISKCOLORS) * 64)
@@ -45,13 +46,6 @@ enum class PLAYERINDEX {
 	PLAYERINDEX_BLACK = 0,
 	PLAYERINDEX_WHITE,
 	PLAYERINDEX_LIMIT
-};
-
-enum class DISKCOLORS {
-	COLOR_NONE = 0,		// No disk
-	COLOR_BLACK,		// Black disk
-	COLOR_WHITE,		// White disk
-	COLOR_OUTOFBOAD		// Out of the board (used only in think.cpp)
 };
 
 enum class PLAYERTYPE {

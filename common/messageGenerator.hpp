@@ -1,5 +1,5 @@
 #pragma once
-#include "othello.hpp"
+#include "stdio.h"
 
 constexpr auto MAX_MESSAGE_LENGTH = 1024;
 

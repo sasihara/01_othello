@@ -1,5 +1,4 @@
 #pragma once
-#include "othello.hpp"
 
 class MessageParser {
 public:
