@@ -77,13 +77,13 @@ public:
 
 class Board {
 private:
-	DISKCOLORS board[8][8];
+	DISKCOLORS board[64];
 public:
 	Board();
 	int PutDisk(int x, int y, DISKCOLORS color);
 	DISKCOLORS GetDisk(int x, int y);
 	int InitBoard();
-	int CopyBoard(DISKCOLORS board[8][8]);
+	int CopyBoard(DISKCOLORS board[64]);
 };
 
 class Gaming {

@@ -9,7 +9,7 @@ public:
 	int makeMessageHeader(MESSAGETYPE type);
 	int addTLVID(int id);
 	int addTLVPlace(unsigned _int8 x, unsigned _int8 y);
-	int addTLVBoard(DISKCOLORS board[8][8]);
+	int addTLVBoard(DISKCOLORS board[64]);
 	int addTLVTURN(int turn);
 	int getSize();
 private:

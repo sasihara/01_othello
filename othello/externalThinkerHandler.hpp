@@ -45,7 +45,7 @@ public:
 	int setParam(char* _hostname, int _port, HWND _hWnd);
 	int setWindowHandle(HWND _hwnd);
 	int sendInformationRequest();
-	int sendThinkRequest(int turn, DISKCOLORS board[8][8], HWND _hWnd);
+	int sendThinkRequest(int turn, DISKCOLORS board[64], HWND _hWnd);
 	int receiveMessages();
 	int recendMessage();
 };

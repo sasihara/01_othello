@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <memory.h>
 #include "externalThinkerMessages.hpp"
 #include "messageParser.hpp"
 
@@ -159,18 +160,14 @@ int MessageParser::getTLVParamsID(int *_id)
 //		-1		Received message is not set yet.
 //      -2      ID TLV is not stored in the received message
 //
-int MessageParser::getTLVParamsBoard(DISKCOLORS _board[8][8])
+int MessageParser::getTLVParamsBoard(DISKCOLORS _board[64])
 {
     // Availability check
     if (isMessageDataAvailable == false) return -1;
     if (isBoadDataAvailable == false) return -2;
 
     // Store the data
-    for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 8; j++) {
-            _board[i][j] = (DISKCOLORS)board[i * 8 + j];
-        }
-    }
+    memcpy(_board, (DISKCOLORS*)board, BOARDSIZE_IN_BYTE);
 
     // Return
     return 0;

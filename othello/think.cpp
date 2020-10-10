@@ -17,7 +17,7 @@
 //	Return:
 //		0: Succeed
 //
-int Thinker::SetParams(int _turn, DISKCOLORS _board[8][8])
+int Thinker::SetParams(int _turn, DISKCOLORS _board[64])
 {
 	memcpy(board, _board, BOARDSIZE_IN_BYTE);
 	turn = _turn;
@@ -77,14 +77,12 @@ int Thinker::think()
 //	Return:
 //		The number of dice.
 //
-int Thinker::CountDisk(DISKCOLORS color, DISKCOLORS _board[8][8])
+int Thinker::CountDisk(DISKCOLORS color, DISKCOLORS _board[64])
 {
-	int c = 0, x, y;
+	int c = 0, i;
 
-	for (x = 0; x < 8; x++) {
-		for (y = 0; y < 8; y++) {
-			if (_board[x][y] == color) c++;
-		}
+	for (i = 0; i < 64; i++) {
+		if (_board[i] == color) c++;
 	}
 	return c;
 }
@@ -103,7 +101,7 @@ int Thinker::findBestPlaceForCurrentPlayer(int lv)
 {
 	int i, eval = INT_MIN, score;
 	int flag;
-	DISKCOLORS tmpBoard[8][8];
+	DISKCOLORS tmpBoard[64];
 	char x = -1, y = -1;
 
 	for (i = 0; i < 60; i++) {
@@ -135,16 +133,16 @@ int Thinker::findBestPlaceForCurrentPlayer(int lv)
 //
 //	Return:
 //
-int Thinker::MaxLevel(int lv, int f, int beta, DISKCOLORS _board[8][8])
+int Thinker::MaxLevel(int lv, int f, int beta, DISKCOLORS _board[64])
 {
 	int pf, alpha = INT_MIN, i, a;
-	DISKCOLORS tmpBoard[8][8];
+	DISKCOLORS tmpBoard[64];
 	int flag;
 
 	if (lv == 0) return evcal(_board);
 	pf = FALSE;
 
-	for (i = 0; i < 64; i++) {
+	for (i = 0; i < 60; i++) {
 		if ((flag = check(_board, CheckPosX[i], CheckPosY[i], currentPlayer)) > 0) {
 			pf = TRUE;
 			memcpy(tmpBoard, _board, BOARDSIZE_IN_BYTE);
@@ -172,16 +170,16 @@ int Thinker::MaxLevel(int lv, int f, int beta, DISKCOLORS _board[8][8])
 //	Return:
 //		Score.
 //
-int Thinker::MinLevel(int lv, int f, int alpha, DISKCOLORS _board[8][8])
+int Thinker::MinLevel(int lv, int f, int alpha, DISKCOLORS _board[64])
 {
 	int pf, beta = INT_MAX, i, a;
-	DISKCOLORS tmpBoard[8][8];
+	DISKCOLORS tmpBoard[64];
 	int flag;
 
 	if (lv == 0) return evcal(_board);
 	pf = FALSE;
 
-	for (i = 0; i < 64; i++) {
+	for (i = 0; i < 60; i++) {
 		if ((flag = check(_board, CheckPosX[i], CheckPosY[i], opponent)) > 0) {
 			pf = TRUE;
 			memcpy(tmpBoard, _board, BOARDSIZE_IN_BYTE);
@@ -206,33 +204,31 @@ int Thinker::MinLevel(int lv, int f, int alpha, DISKCOLORS _board[8][8])
 //	Return:
 //		Score.
 //
-int Thinker::evcal(DISKCOLORS board[8][8])
+int Thinker::evcal(DISKCOLORS board[64])
 {
 	int i, c = 0;
 	//static int kh[10][10];
-	int result[8][8];
+	int result[64];
 
 	if (thinkerState == GAMESTATE::GAMESTATE_END) {
 		for (i = 0; i < 60; i++) {
-			if (board[CheckPosX[i]][CheckPosY[i]] == currentPlayer) c++;
-			else if (board[CheckPosX[i]][CheckPosY[i]] == opponent) c--;
+			if (board[CheckPosX[i] * 8 + CheckPosY[i]] == currentPlayer) c++;
+			else if (board[CheckPosX[i] * 8 + CheckPosY[i]] == opponent) c--;
 		}
 		return c;
 	}
 	else {
 		analyzeDiskCharacter(board, result);
-		for (int x = 0; x < 8; x++) {
-			for (int y = 0; y < 8; y++) {
-				if (board[x][y] == currentPlayer) {
-					if ((result[x][y] & (DISKCHARFLAG_EXISTENCE | DISKCHARFLAG_CHANGABLE)) == DISKCHARFLAG_EXISTENCE)
-						c += FIXED_DISK_WEIGHT;
-					else c += weight[(int)thinkerState][x][y];
-				}
-				else if (board[x][y] == opponent) {
-					if ((result[x][y] & (DISKCHARFLAG_EXISTENCE | DISKCHARFLAG_CHANGABLE)) == DISKCHARFLAG_EXISTENCE)
-						c -= FIXED_DISK_WEIGHT;
-					else c -= weight[(int)thinkerState][x][y];
-				}
+		for (i = 0; i < 64; i++) {
+			if (board[i] == currentPlayer) {
+				if ((result[i] & (DISKCHARFLAG_EXISTENCE | DISKCHARFLAG_CHANGABLE)) == DISKCHARFLAG_EXISTENCE)
+					c += FIXED_DISK_WEIGHT;
+				else c += weight[(int)thinkerState][i / 8][i % 8];
+			}
+			else if (board[i] == opponent) {
+				if ((result[i] & (DISKCHARFLAG_EXISTENCE | DISKCHARFLAG_CHANGABLE)) == DISKCHARFLAG_EXISTENCE)
+					c -= FIXED_DISK_WEIGHT;
+				else c -= weight[(int)thinkerState][i / 8][i % 8];
 			}
 		}
 		return c;
@@ -259,10 +255,11 @@ int Thinker::evcal(DISKCOLORS board[8][8])
 //			bit 7:	Left.
 //			bit 8:	Upper Left.
 
-int Thinker::check(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS color)
+int Thinker::check(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color)
 {
 	int ret = 0;
 
+	if (board[xPos * 8 + yPos] != DISKCOLORS::COLOR_NONE) return 0;
 	if (checkOneDir(board, xPos, yPos, color, 0, -1) > 0) ret = ret | 1;
 	if (checkOneDir(board, xPos, yPos, color, 1, -1) > 0) ret = ret | 2;
 	if (checkOneDir(board, xPos, yPos, color, 1, 0) > 0) ret = ret | 4;
@@ -287,7 +284,7 @@ int Thinker::check(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS color)
 //
 //	Return:	The number of disks to be turned.
 //
-int Thinker::checkOneDir(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep)
+int Thinker::checkOneDir(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep)
 {
 	// Check parameters
 	if (xPos < 0 || xPos > 7 || yPos < 0 || yPos > 7) return 0;
@@ -295,7 +292,7 @@ int Thinker::checkOneDir(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS 
 	if (xStep < -1 || xStep > 1 || yStep < -1 || yStep > 1) return 0;
 
 	// Check if the position is empty or not
-	if (board[xPos][yPos] != DISKCOLORS::COLOR_NONE) return 0;
+	if (board[xPos * 8 + yPos] != DISKCOLORS::COLOR_NONE) return 0;
 
 	// Check if the next place is on the board or not
 	if (xPos + xStep < 0 || xPos + xStep > 7 || yPos + yStep < 0 || yPos + yStep > 7) return 0;
@@ -303,9 +300,9 @@ int Thinker::checkOneDir(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS 
 	// Count the number of disks to be turned
 	int x, y, NumTurned = 0;
 	for (x = xPos + xStep, y = yPos + yStep; 0 <= x && x <= 7 && 0 <= y && y <= 7; x += xStep, y += yStep) {
-		if (board[x][y] == color) return NumTurned;				// meeting player's disk
-		else if (board[x][y] == DISKCOLORS::COLOR_NONE) return 0;				// reached to empty without meeting player's disk
-		else if (board[x][y] == OPPONENT(color)) NumTurned++;		// meeting opponent's disk
+		if (board[x * 8 + y] == color) return NumTurned;				// meeting player's disk
+		else if (board[x * 8 + y] == DISKCOLORS::COLOR_NONE) return 0;				// reached to empty without meeting player's disk
+		else if (board[x * 8 + y] == OPPONENT(color)) NumTurned++;		// meeting opponent's disk
 		else return 0;												// Illegal case
 	}
 
@@ -325,8 +322,9 @@ int Thinker::checkOneDir(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS 
 //
 //	Return:	The number of disks to be turned.
 //
-int Thinker::turnDisk(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS color, int flag)
+int Thinker::turnDisk(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int flag)
 {
+	if (board[xPos * 8 + yPos] != DISKCOLORS::COLOR_NONE) return 0;
 	if (flag & 1) turnDiskOneDir(board, xPos, yPos, color, 0, -1);
 	if (flag & 2) turnDiskOneDir(board, xPos, yPos, color, 1, -1);
 	if (flag & 4) turnDiskOneDir(board, xPos, yPos, color, 1, 0);
@@ -351,16 +349,16 @@ int Thinker::turnDisk(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS col
 //
 //	Return:	The number of disks to be turned.
 //
-int Thinker::turnDiskOneDir(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep)
+int Thinker::turnDiskOneDir(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep)
 {
 	// Place player's disk on the board
-	board[xPos][yPos] = color;
+	board[xPos * 8 + yPos] = color;
 
 	// Turn disks
 	int x, y;
 	for (x = xPos + xStep, y = yPos + yStep; 0 <= x && x <= 7 && 0 <= y && y <= 7; x += xStep, y += yStep) {
-		if (board[x][y] == color) break;
-		board[x][y] = color;
+		if (board[x * 8 + y] == color) break;
+		board[x * 8 + y] = color;
 	}
 
 	return 0;
@@ -377,18 +375,16 @@ int Thinker::turnDiskOneDir(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLO
 //	Return:
 //		No return value.
 //
-void Thinker::analyzeDiskCharacter(DISKCOLORS board[8][8], int result[8][8])
+void Thinker::analyzeDiskCharacter(DISKCOLORS board[64], int result[64])
 {
-	int x, y;
+	int i;
 
 	memset(result, 0, BOARDSIZE_IN_BYTE);
 
-	for (x = 0; x < 8; x++) {
-		for (y = 0; y < 8; y++) {
-			if (board[x][y] != DISKCOLORS::COLOR_NONE) result[x][y] |= DISKCHARFLAG_EXISTENCE;
-			if (board[x][y] != DISKCOLORS::COLOR_NONE && isFixed(x, y, board) == FALSE) {
-				result[x][y] |= DISKCHARFLAG_CHANGABLE;
-			}
+	for (i = 0; i < 64; i++) {
+		if (board[i] != DISKCOLORS::COLOR_NONE) result[i] |= DISKCHARFLAG_EXISTENCE;
+		if (board[i] != DISKCOLORS::COLOR_NONE && isFixed(i / 8, i % 8, board) == FALSE) {
+			result[i] |= DISKCHARFLAG_CHANGABLE;
 		}
 	}
 }
@@ -405,7 +401,7 @@ void Thinker::analyzeDiskCharacter(DISKCOLORS board[8][8], int result[8][8])
 //		true:	The disk will never be changed.
 //		false:	The disk can be changed.
 //
-bool Thinker::isFixed(int x, int y, DISKCOLORS board[8][8])
+bool Thinker::isFixed(int x, int y, DISKCOLORS board[64])
 {
 	if (isFixedOneDir(x, y, board, 1, 0) == FALSE) return FALSE;
 	if (isFixedOneDir(x, y, board, 1, 1) == FALSE) return FALSE;
@@ -427,7 +423,7 @@ bool Thinker::isFixed(int x, int y, DISKCOLORS board[8][8])
 //		true:	The disk will never be changed for the specified direction.
 //		false:	The disk can be changed for the specified direction.
 //
-bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[8][8], int dx, int dy)
+bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[64], int dx, int dy)
 {
 	int cx, cy;
 	DISKCOLORS playerColorInThisCheck, opponentColorInThisCheck;
@@ -436,10 +432,10 @@ bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[8][8], int dx, int dy
 	// Input check
 	if (x < 0 || x >= 8) return FALSE;
 	if (y < 0 || y >= 8) return FALSE;
-	if (board[x][y] == DISKCOLORS::COLOR_NONE) return FALSE;
+	if (board[x * 8 + y] == DISKCOLORS::COLOR_NONE) return FALSE;
 
 	// Store disk colors in this check
-	playerColorInThisCheck = board[x][y];
+	playerColorInThisCheck = board[x * 8 + y];
 	opponentColorInThisCheck = OPPONENT(playerColorInThisCheck);
 
 	// Check if the disk color at the specified place continues to the edge
@@ -450,7 +446,7 @@ bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[8][8], int dx, int dy
 		if (cx < 0 || cx >= 8 || cy < 0 || cy >= 8) 
 			return TRUE;
 		// if empty square exists before reaching to the edge, 
-		else if (board[cx][cy] == DISKCOLORS::COLOR_NONE || board[cx][cy] == opponentColorInThisCheck)
+		else if (board[cx * 8 + cy] == DISKCOLORS::COLOR_NONE || board[cx * 8 + cy] == opponentColorInThisCheck)
 			break;
 	}
 
@@ -461,7 +457,7 @@ bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[8][8], int dx, int dy
 		if (cx < 0 || cx >= 8 || cy < 0 || cy >= 8)
 			return TRUE;
 		// if empty square exists before reaching to the edge, 
-		else if (board[cx][cy] == DISKCOLORS::COLOR_NONE || board[cx][cy] == opponentColorInThisCheck)
+		else if (board[cx * 8 + cy] == DISKCOLORS::COLOR_NONE || board[cx * 8 + cy] == opponentColorInThisCheck)
 			break;
 	}
 
@@ -475,13 +471,13 @@ bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[8][8], int dx, int dy
 	// Convert the disks for the right side into its code
 	for (; 0 <= cx && cx < 8 && 0 <= cy && cy < 8 ; cx += dx, cy += dy) {
 		patternCode = patternCode << 2;
-		if (board[cx][cy] == DISKCOLORS::COLOR_NONE) {
+		if (board[cx * 8 + cy] == DISKCOLORS::COLOR_NONE) {
 			patternCode = patternCode | 0x01;
 		}
-		else if (board[cx][cy] == opponentColorInThisCheck) {
+		else if (board[cx * 8 + cy] == opponentColorInThisCheck) {
 			patternCode = patternCode | 0x02;
 		}
-		else if (board[cx][cy] == playerColorInThisCheck) {
+		else if (board[cx * 8 + cy] == playerColorInThisCheck) {
 			patternCode = patternCode | 0x03;
 		}
 	}
@@ -497,13 +493,13 @@ bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[8][8], int dx, int dy
 	// Convert the disks for the left side into its code
 	for (; 0 <= cx && cx < 8 && 0 <= cy && cy < 8; cx -= dx, cy -= dy) {
 		patternCode = patternCode << 2;
-		if (board[cx][cy] == DISKCOLORS::COLOR_NONE) {
+		if (board[cx * 8 + cy] == DISKCOLORS::COLOR_NONE) {
 			patternCode = patternCode | 0x01;
 		}
-		else if (board[cx][cy] == opponentColorInThisCheck) {
+		else if (board[cx * 8 + cy] == opponentColorInThisCheck) {
 			patternCode = patternCode | 0x02;
 		}
-		else if (board[cx][cy] == playerColorInThisCheck) {
+		else if (board[cx * 8 + cy] == playerColorInThisCheck) {
 			patternCode = patternCode | 0x03;
 		}
 	}

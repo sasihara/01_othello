@@ -1,3 +1,4 @@
+#include <memory.h>
 #include "externalThinkerMessages.hpp"
 #include "messageGenerator.hpp"
 
@@ -132,7 +133,7 @@ int MessageGenerator::addTLVPlace(unsigned _int8 x, unsigned _int8 y)
 //		0		Succeed
 //		-1		Work space is not enough
 //
-int MessageGenerator::addTLVBoard(DISKCOLORS board[8][8])
+int MessageGenerator::addTLVBoard(DISKCOLORS board[64])
 {
 	if (initilized == false) return -1;
 
@@ -142,11 +143,8 @@ int MessageGenerator::addTLVBoard(DISKCOLORS board[8][8])
 		head += sizeof(TLV_HEADER);
 		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
 
-		for (int i = 0; i < 8; i++) {
-			for (int j = 0; j < 8; j++) {
-				((BOARD*)(&sendData[head]))->board[i * 8 + j] = (unsigned _int8)board[i][j];
-			}
-		}
+		memcpy(((BOARD*)(&sendData[head]))->board, board, BOARDSIZE_IN_BYTE);
+
 		head += sizeof(unsigned _int8) * 64;
 		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(unsigned _int8) * 64;
 	}

@@ -5,7 +5,7 @@ public:
 	int SetParam(char *message, int length);
 	int getMessageType(MESSAGETYPE* _messageType);
 	int getTLVParamsID(int* _id);
-	int getTLVParamsBoard(DISKCOLORS _board[8][8]);
+	int getTLVParamsBoard(DISKCOLORS _board[64]);
 	int getTLVParamsTurn(int* _turn);
 	int getTLVParamsPlace(int* _x, int* _y);
 	int getTLVParamsReason();

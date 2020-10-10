@@ -17,12 +17,12 @@ enum class GAMESTATE {
 
 class Thinker {
 public:
-	int SetParams(int turn, DISKCOLORS board[8][8]);
+	int SetParams(int turn, DISKCOLORS board[64]);
 	int think();
-	void analyzeDiskCharacter(DISKCOLORS board[8][8], int result[8][8]);
+	void analyzeDiskCharacter(DISKCOLORS board[64], int result[64]);
 
 private:
-	DISKCOLORS board[8][8];
+	DISKCOLORS board[64];
 	int turn;
 	GAMESTATE thinkerState = GAMESTATE::GAMESTATE_EARLY_STAGE;
 	DISKCOLORS currentPlayer, opponent;
@@ -75,18 +75,17 @@ private:
 		}
 	};
 	
-	int CountDisk(DISKCOLORS color, DISKCOLORS _board[8][8]);
+	int CountDisk(DISKCOLORS color, DISKCOLORS _board[64]);
 	int findBestPlaceForCurrentPlayer(int lv);
-	int MaxLevel(int lv, int f, int beta, DISKCOLORS _board[8][8]);
-	int MinLevel(int lv, int f, int alpha, DISKCOLORS _board[8][8]);
-	int evcal(DISKCOLORS _board[8][8]);
-	//void analyzeDiskCharacter(DISKCOLORS board[8][8], int result[8][8]);
-	bool isFixed(int x, int y, DISKCOLORS board[8][8]);
-	bool isFixedOneDir(int x, int y, DISKCOLORS board[8][8], int dx, int dy);
+	int MaxLevel(int lv, int f, int beta, DISKCOLORS _board[64]);
+	int MinLevel(int lv, int f, int alpha, DISKCOLORS _board[64]);
+	int evcal(DISKCOLORS _board[64]);
+	bool isFixed(int x, int y, DISKCOLORS board[64]);
+	bool isFixedOneDir(int x, int y, DISKCOLORS board[64], int dx, int dy);
 	bool isPatternToFix(int code);
-	int check(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS color);
-	int checkOneDir(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep);
-	int turnDisk(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS color, int flag);
-	int turnDiskOneDir(DISKCOLORS board[8][8], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep);
+	int check(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color);
+	int checkOneDir(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep);
+	int turnDisk(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int flag);
+	int turnDiskOneDir(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep);
 
 };

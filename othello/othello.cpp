@@ -218,7 +218,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_USER_TRIGGER_THINKER:
 	{
 		Thinker thinker;
-		DISKCOLORS workBoard[8][8];
+		DISKCOLORS workBoard[64];
 
 		// If player must pass, skip calling thiner and switch to next player
 		if (gaming.IsPlayerMustPass() == true) {
@@ -250,9 +250,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				break;
 			}
 
-			// Wait for a moment
-			Sleep(5000);
-
 			// Remove all key and mouse events during thinking
 			MSG bufferdMessages;
 			while (PeekMessage(&bufferdMessages, hWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
@@ -276,7 +273,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			switchToNextPlayer(hWnd);
 		}
 		else{
-			DISKCOLORS workBoard[8][8];
+			DISKCOLORS workBoard[64];
 
 			// Get current board from Board object.
 			board.CopyBoard(workBoard);
@@ -612,7 +609,7 @@ Board::Board()
 //
 int Board::PutDisk(int x, int y, DISKCOLORS color)
 {
-	board[x][y] = color;
+	board[x * 8 + y] = color;
 	return 0;
 }
 
@@ -627,7 +624,7 @@ int Board::PutDisk(int x, int y, DISKCOLORS color)
 //		Disk color.
 //
 DISKCOLORS Board::GetDisk(int x, int y) {
-	return board[x][y];
+	return board[x * 8 + y];
 }
 
 //
@@ -643,8 +640,8 @@ DISKCOLORS Board::GetDisk(int x, int y) {
 int Board::InitBoard()
 {
 	memset(board, (int)DISKCOLORS::COLOR_NONE, BOARDSIZE_IN_BYTE);
-	board[3][3] = board[4][4] = DISKCOLORS::COLOR_WHITE;
-	board[3][4] = board[4][3] = DISKCOLORS::COLOR_BLACK;
+	board[3 * 8 + 3] = board[4 * 8 + 4] = DISKCOLORS::COLOR_WHITE;
+	board[3 * 8 + 4] = board[4 * 8 + 3] = DISKCOLORS::COLOR_BLACK;
 	return 0;
 }
 
@@ -658,7 +655,7 @@ int Board::InitBoard()
 //	Return:
 //		0: Succeed
 //
-int Board::CopyBoard(DISKCOLORS _board[8][8])
+int Board::CopyBoard(DISKCOLORS _board[64])
 {
 	memcpy(_board, board, BOARDSIZE_IN_BYTE);
 	return 0;

@@ -234,7 +234,7 @@ int ExternalThinkerHandler::sendInformationRequest()
 //		-3	Failed to send ThinkRequest message
 //		-4	Failed to set timer.
 //
-int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[8][8], HWND _hWnd)
+int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[64], HWND _hWnd)
 {
 	switch (state) {
 	case PROTOCOLSTATES::INIT:
