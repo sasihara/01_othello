@@ -137,16 +137,15 @@ int MessageGenerator::addTLVBoard(DISKCOLORS board[64])
 {
 	if (initilized == false) return -1;
 
-	if (head + sizeof(TLV_HEADER) + sizeof(unsigned _int8) * 64 < sendDataMaxSize) {
+	if (head + sizeof(TLV_HEADER) + sizeof(DISKCOLORS) * 64 < sendDataMaxSize) {
 		((TLV_HEADER*)(&sendData[head]))->Type = (unsigned _int8)TYPE::BOARD;
-		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(unsigned _int8) * 64;
-		head += sizeof(TLV_HEADER);
+		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(DISKCOLORS) * 64;
 		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
+		head += sizeof(TLV_HEADER);
 
 		memcpy(((BOARD*)(&sendData[head]))->board, board, BOARDSIZE_IN_BYTE);
-
-		head += sizeof(unsigned _int8) * 64;
-		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(unsigned _int8) * 64;
+		head += BOARDSIZE_IN_BYTE;
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += BOARDSIZE_IN_BYTE;
 	}
 	else {
 		failed = true;

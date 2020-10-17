@@ -146,7 +146,7 @@ void HandleInformationRequest(MessageParser messageParser, SOCKET sock, struct s
 void HandleThinkRequest(MessageParser messageParser, SOCKET sock, struct sockaddr_in from, int sockaddr_in_size)
 {
     int tlvHead = sizeof(MESSAGEHEADER);       // tlvHead: TLV head pos to be processed 
-    DISKCOLORS board[8][8];
+    DISKCOLORS board[64];
     int turn = 0;
     int id = 0;
     Thinker thinker;

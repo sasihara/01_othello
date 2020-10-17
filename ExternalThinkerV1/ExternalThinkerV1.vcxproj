@@ -153,14 +153,14 @@
   <ItemGroup>
     <ClCompile Include="..\common\messageGenerator.cpp" />
     <ClCompile Include="..\common\messageParser.cpp" />
+    <ClCompile Include="..\othello\think.cpp" />
     <ClCompile Include="externalThinkerV1.cpp" />
-    <ClCompile Include="think.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\common\messageGenerator.hpp" />
     <ClInclude Include="..\common\messageParser.hpp" />
+    <ClInclude Include="..\othello\think.hpp" />
     <ClInclude Include="externalThinkerV1.hpp" />
-    <ClInclude Include="think.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

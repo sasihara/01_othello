@@ -45,48 +45,40 @@ int MessageParser::SetParam(char* _message, int _length)
         switch ((TYPE)((TLV_HEADER*)&message[tlvHead])->Type) {
         case TYPE::BOARD:
             // Check TLV data length
-            if (valueLen != sizeof(TLV_HEADER) + 64) {
-                continue;
+            if (valueLen == sizeof(TLV_HEADER) + BOARDSIZE_IN_BYTE) {
+                // Store the board address
+                board = &message[tlvHead + sizeof(TLV_HEADER)];
+                isBoadDataAvailable = true;
             }
-
-            // Store the board address
-            board = &message[tlvHead + sizeof(TLV_HEADER)];
-            isBoadDataAvailable = true;
             break;
         case TYPE::TURN:
             // Check TLV data length
-            if (valueLen != sizeof(TLV_HEADER) + sizeof(TURN)) {
-                continue;
+            if (valueLen == sizeof(TLV_HEADER) + sizeof(TURN)) {
+                // Store the address
+                turn = (int*)&message[tlvHead + sizeof(TLV_HEADER)];
+                isTurnDataAvailable = true;
             }
-
-            // Store the address
-            turn = (int*)&message[tlvHead + sizeof(TLV_HEADER)];
-            isTurnDataAvailable = true;
             break;
         case TYPE::ID:
             // Check TLV data length
-            if (valueLen != sizeof(TLV_HEADER) + sizeof(ID)) {
-                continue;
+            if (valueLen == sizeof(TLV_HEADER) + sizeof(ID)) {
+                // Store the address
+                id = (unsigned _int16*) & message[tlvHead + sizeof(TLV_HEADER)];
+                isIdDataAvailable = true;
             }
-
-            // Store the address
-            id = (unsigned _int16*)&message[tlvHead + sizeof(TLV_HEADER)];
-            isIdDataAvailable = true;
             break;
         case TYPE::PLACE:
             // Check TLV data length
-            if (valueLen != sizeof(TLV_HEADER) + sizeof(PLACE)) {
-                continue;
+            if (valueLen == sizeof(TLV_HEADER) + sizeof(PLACE)) {
+                // Store the place
+                PLACE* place;
+                place = (PLACE*)&message[tlvHead + sizeof(TLV_HEADER)];
+
+                x = (unsigned _int8*) & place->x;
+                y = (unsigned _int8*) & place->y;
+
+                isPlaceDataAvailable = true;
             }
-
-            // Store the place
-            PLACE* place;
-            place = (PLACE*)&message[tlvHead + sizeof(TLV_HEADER)];
-
-            x = (unsigned _int8*)&place->x;
-            y = (unsigned _int8*)&place->y;
-
-            isPlaceDataAvailable = true;
             break;
         default:
             break;

@@ -11,8 +11,8 @@
 #define OPPONENT(diskcolor)			(DISKCOLORS)(((int)diskcolor & 1) + 1)	// diskcolor = COLOR_BLACK : 2 (COLOR_WHITE), diskcolor = COLOR_WHITE : 1 (COLOR_BLACK)
 
 // enum
-enum class DISKCOLORS {
-	COLOR_NONE = 0,		// No disk
+enum class DISKCOLORS : unsigned _int16 {
+COLOR_NONE = 0,		// No disk
 	COLOR_BLACK,		// Black disk
 	COLOR_WHITE,		// White disk
 	COLOR_OUTOFBOAD		// Out of the board (used only in think.cpp)
