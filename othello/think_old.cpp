@@ -2,10 +2,8 @@
 // Copyright (C) 1994  T.Sashihara
 // This program goes with Othello for Windows Ver 3.00
 
-#include <stdio.h>
-#include <memory.h>
-#include <limits.h>
-#include "externalThinkerMessages.hpp"
+#include <windows.h>
+#include "othello.hpp"
 #include "think.hpp"
 
 //
@@ -110,7 +108,7 @@ int Thinker::findBestPlaceForCurrentPlayer(int lv)
 		if ((flag = check(board, CheckPosX[i], CheckPosY[i], currentPlayer)) > 0) {
 			memcpy(tmpBoard, board, sizeof(tmpBoard));
 			turnDisk(tmpBoard, CheckPosX[i], CheckPosY[i], currentPlayer, flag);
-			score = MinLevel(lv - 1, false, eval, tmpBoard);
+			score = MinLevel(lv - 1, FALSE, eval, tmpBoard);
 			if (eval < score) {
 				x = CheckPosX[i];
 				y = CheckPosY[i];
@@ -134,29 +132,28 @@ int Thinker::findBestPlaceForCurrentPlayer(int lv)
 //
 //	Return:
 //
-int Thinker::MaxLevel(int lv, bool f, int beta, DISKCOLORS _board[64])
+int Thinker::MaxLevel(int lv, int f, int beta, DISKCOLORS _board[64])
 {
-	bool pf;
-	int alpha = INT_MIN, i, a;
+	int pf, alpha = INT_MIN, i, a;
 	DISKCOLORS tmpBoard[64];
 	int flag;
 
 	if (lv == 0) return evcal(_board);
-	pf = false;
+	pf = FALSE;
 
 	for (i = 0; i < 60; i++) {
 		if ((flag = check(_board, CheckPosX[i], CheckPosY[i], currentPlayer)) > 0) {
-			pf = true;
+			pf = TRUE;
 			memcpy(tmpBoard, _board, sizeof(tmpBoard));
 			turnDisk(tmpBoard, CheckPosX[i], CheckPosY[i], currentPlayer, flag);
-			a = MinLevel(lv - 1, false, alpha, tmpBoard);
+			a = MinLevel(lv - 1, FALSE, alpha, tmpBoard);
 			if (alpha < a) alpha = a;
 			if (alpha >= beta) return alpha;
 		}
 	}
-	if (pf != false) return alpha;
-	if (f == true) return evcal(_board);
-	return MinLevel(lv, true, alpha, _board);
+	if (pf != FALSE) return alpha;
+	if (f == TRUE) return evcal(_board);
+	return MinLevel(lv, TRUE, alpha, _board);
 }
 
 //
@@ -172,29 +169,28 @@ int Thinker::MaxLevel(int lv, bool f, int beta, DISKCOLORS _board[64])
 //	Return:
 //		Score.
 //
-int Thinker::MinLevel(int lv, bool f, int alpha, DISKCOLORS _board[64])
+int Thinker::MinLevel(int lv, int f, int alpha, DISKCOLORS _board[64])
 {
-	bool pf;
-	int beta = INT_MAX, i, a;
+	int pf, beta = INT_MAX, i, a;
 	DISKCOLORS tmpBoard[64];
 	int flag;
 
 	if (lv == 0) return evcal(_board);
-	pf = false;
+	pf = FALSE;
 
 	for (i = 0; i < 60; i++) {
 		if ((flag = check(_board, CheckPosX[i], CheckPosY[i], opponent)) > 0) {
-			pf = true;
+			pf = TRUE;
 			memcpy(tmpBoard, _board, sizeof(tmpBoard));
 			turnDisk(tmpBoard, CheckPosX[i], CheckPosY[i], opponent, flag);
-			a = MaxLevel(lv - 1, false, beta, tmpBoard);
+			a = MaxLevel(lv - 1, FALSE, beta, tmpBoard);
 			if (beta > a) beta = a;
 			if (beta <= alpha) return beta;
 		}
 	}
-	if (pf != false) return beta;
-	if (f == true) return evcal(_board);
-	return MaxLevel(lv, true, beta, _board);
+	if (pf != FALSE) return beta;
+	if (f == TRUE) return evcal(_board);
+	return MaxLevel(lv, TRUE, beta, _board);
 }
 
 //
@@ -389,7 +385,7 @@ void Thinker::analyzeDiskCharacter(DISKCOLORS board[64], int result[64])
 
 	for (i = 0; i < 64; i++) {
 		if (board[i] != DISKCOLORS::COLOR_NONE) result[i] |= DISKCHARFLAG_EXISTENCE;
-		if (board[i] != DISKCOLORS::COLOR_NONE && isFixed(i / 8, i % 8, board) == false) {
+		if (board[i] != DISKCOLORS::COLOR_NONE && isFixed(i / 8, i % 8, board) == FALSE) {
 			result[i] |= DISKCHARFLAG_CHANGABLE;
 		}
 	}
@@ -409,11 +405,11 @@ void Thinker::analyzeDiskCharacter(DISKCOLORS board[64], int result[64])
 //
 bool Thinker::isFixed(int x, int y, DISKCOLORS board[64])
 {
-	if (isFixedOneDir(x, y, board, 1, 0) == false) return false;
-	if (isFixedOneDir(x, y, board, 1, 1) == false) return false;
-	if (isFixedOneDir(x, y, board, 0, 1) == false) return false;
-	if (isFixedOneDir(x, y, board, -1, 1) == false) return false;
-	return true;
+	if (isFixedOneDir(x, y, board, 1, 0) == FALSE) return FALSE;
+	if (isFixedOneDir(x, y, board, 1, 1) == FALSE) return FALSE;
+	if (isFixedOneDir(x, y, board, 0, 1) == FALSE) return FALSE;
+	if (isFixedOneDir(x, y, board, -1, 1) == FALSE) return FALSE;
+	return TRUE;
 }
 
 //
@@ -436,9 +432,9 @@ bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[64], int dx, int dy)
 	bool isExistOpponentDisk = false;
 
 	// Input check
-	if (x < 0 || x >= 8) return false;
-	if (y < 0 || y >= 8) return false;
-	if (board[x * 8 + y] == DISKCOLORS::COLOR_NONE) return false;
+	if (x < 0 || x >= 8) return FALSE;
+	if (y < 0 || y >= 8) return FALSE;
+	if (board[x * 8 + y] == DISKCOLORS::COLOR_NONE) return FALSE;
 
 	// Store disk colors in this check
 	playerColorInThisCheck = board[x * 8 + y];
@@ -450,7 +446,7 @@ bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[64], int dx, int dy)
 	for (;; cx += dx, cy += dy) {
 		// If player's color continues to the edge, this disk will never change to the opponent
 		if (cx < 0 || cx >= 8 || cy < 0 || cy >= 8) 
-			return true;
+			return TRUE;
 		// if empty square exists before reaching to the edge, 
 		else if (board[cx * 8 + cy] == DISKCOLORS::COLOR_NONE || board[cx * 8 + cy] == opponentColorInThisCheck)
 			break;
@@ -461,7 +457,7 @@ bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[64], int dx, int dy)
 	for (;; cx -= dx, cy -= dy) {
 		// If player's color continues to the edge, this disk will never change to the opponent
 		if (cx < 0 || cx >= 8 || cy < 0 || cy >= 8)
-			return true;
+			return TRUE;
 		// if empty square exists before reaching to the edge, 
 		else if (board[cx * 8 + cy] == DISKCOLORS::COLOR_NONE || board[cx * 8 + cy] == opponentColorInThisCheck)
 			break;
@@ -490,7 +486,7 @@ bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[64], int dx, int dy)
 	}
 
 	// Check if the pattern exists in the patterns to fix the checking disk.
-	if (isPatternToFix(patternCode) == false) return false;
+	if (isPatternToFix(patternCode) == FALSE) return FALSE;
 	
 	// Check the left side.
 	patternCode = 0;
@@ -513,8 +509,8 @@ bool Thinker::isFixedOneDir(int x, int y, DISKCOLORS board[64], int dx, int dy)
 	}
 
 	// Check if the pattern exists in the patterns to fix the checking disk.
-	if (isPatternToFix(patternCode) == false) return false;
-	else return true;
+	if (isPatternToFix(patternCode) == FALSE) return FALSE;
+	else return TRUE;
 }
 
 //
@@ -575,8 +571,8 @@ bool Thinker::isPatternToFix(int code)
 	};
 
 	for (int i = 0; patternsToFix[i] >= 0 ; i++) {
-		if (code == patternsToFix[i]) return true;
+		if (code == patternsToFix[i]) return TRUE;
 	}
 
-	return false;
+	return FALSE;
 }

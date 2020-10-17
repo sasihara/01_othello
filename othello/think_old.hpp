@@ -1,4 +1,5 @@
 #pragma once
+#include "othello.hpp"
 
 // Bit for disk character
 #define DISKCHARFLAG_EXISTENCE	0x01		// Indicates disk exsits or not
@@ -76,8 +77,8 @@ private:
 	
 	int CountDisk(DISKCOLORS color, DISKCOLORS _board[64]);
 	int findBestPlaceForCurrentPlayer(int lv);
-	int MaxLevel(int lv, bool f, int beta, DISKCOLORS _board[64]);
-	int MinLevel(int lv, bool f, int alpha, DISKCOLORS _board[64]);
+	int MaxLevel(int lv, int f, int beta, DISKCOLORS _board[64]);
+	int MinLevel(int lv, int f, int alpha, DISKCOLORS _board[64]);
 	int evcal(DISKCOLORS _board[64]);
 	bool isFixed(int x, int y, DISKCOLORS board[64]);
 	bool isFixedOneDir(int x, int y, DISKCOLORS board[64], int dx, int dy);
