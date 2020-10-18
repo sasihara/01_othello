@@ -312,14 +312,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				// Check the result
 				if (ret < 0) {
-					MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
 					gaming.InitGame();
+					MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
 				}
 			}
 			else {
 				// Retry out
-				MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
 				gaming.InitGame();
+				MessageBox(hWnd, TEXT("No response from the thinker. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
 			}
 
 			break;
@@ -336,14 +336,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				// Check the result
 				if (ret < 0) {
-					MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
 					gaming.InitGame();
+					MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
 				}
 			}
 			else {
 				// Retry out
-				MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
 				gaming.InitGame();
+				MessageBox(hWnd, TEXT("No response from the thinker. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
 			}
 
 			break;
