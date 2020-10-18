@@ -33,6 +33,12 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		chwnd = GetDlgItem(hDlg, IDC_EDIT4);
 		SendMessage(chwnd, EM_SETLIMITTEXT, (WPARAM)size, 0);
 
+		// Set initial texts
+		SetWindowText(GetDlgItem(hDlg, IDC_EDIT1), _TEXT("localhost"));
+		SetWindowText(GetDlgItem(hDlg, IDC_EDIT2), _TEXT("60001"));
+		SetWindowText(GetDlgItem(hDlg, IDC_EDIT3), _TEXT("localhost"));
+		SetWindowText(GetDlgItem(hDlg, IDC_EDIT4), _TEXT("60001"));
+
 		// Update state
 		dialogState = DIALOG_STATES::STATE_INIT;
 		return (INT_PTR)TRUE;
