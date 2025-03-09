@@ -53,7 +53,7 @@ int MessageParser::SetParam(char* _message, int _length)
             break;
         case TYPE::TURN:
             // Check TLV data length
-            if (valueLen == sizeof(TLV_HEADER) + sizeof(TURN)) {
+            if (valueLen == sizeof(TLV_HEADER) + sizeof(TLV_TURN)) {
                 // Store the address
                 turn = (int*)&message[tlvHead + sizeof(TLV_HEADER)];
                 isTurnDataAvailable = true;
@@ -61,7 +61,7 @@ int MessageParser::SetParam(char* _message, int _length)
             break;
         case TYPE::ID:
             // Check TLV data length
-            if (valueLen == sizeof(TLV_HEADER) + sizeof(ID)) {
+            if (valueLen == sizeof(TLV_HEADER) + sizeof(TLV_ID)) {
                 // Store the address
                 id = (unsigned _int16*) & message[tlvHead + sizeof(TLV_HEADER)];
                 isIdDataAvailable = true;
@@ -69,16 +69,70 @@ int MessageParser::SetParam(char* _message, int _length)
             break;
         case TYPE::PLACE:
             // Check TLV data length
-            if (valueLen == sizeof(TLV_HEADER) + sizeof(PLACE)) {
+            if (valueLen == sizeof(TLV_HEADER) + sizeof(TLV_PLACE)) {
                 // Store the place
-                PLACE* place;
-                place = (PLACE*)&message[tlvHead + sizeof(TLV_HEADER)];
+                TLV_PLACE* place;
+                place = (TLV_PLACE*)&message[tlvHead + sizeof(TLV_HEADER)];
 
                 x = (unsigned _int8*) & place->x;
                 y = (unsigned _int8*) & place->y;
 
                 isPlaceDataAvailable = true;
             }
+            break;
+        case TYPE::TLVID_GAMEID:
+            // Check TLV data length
+            if (valueLen == sizeof(TLV_HEADER) + sizeof(TLV_GAMEID)) {
+                TLV_GAMEID* pTlv_Gameid;
+
+                pTlv_Gameid = (TLV_GAMEID*)&message[tlvHead + sizeof(TLV_HEADER)];
+                tlvGameid.gameId.pid = pTlv_Gameid->gameId.pid;
+                tlvGameid.gameId.time = pTlv_Gameid->gameId.time;
+
+                isGameIdAvailable = true;
+            }
+            break;
+        case TYPE::RESULT:
+            // Check TLV data length
+            if (valueLen == sizeof(TLV_HEADER) + sizeof(TLV_RESULT)) {
+                TLV_RESULT* pTlv_Result;
+
+                pTlv_Result = (TLV_RESULT*)&message[tlvHead + sizeof(TLV_HEADER)];
+                result = (RESULT)pTlv_Result->result;
+
+                isResultAvailable = true;
+            }
+            break;
+        case TYPE::DISKCOLOR:
+            // Check TLV data length
+            if (valueLen == sizeof(TLV_HEADER) + sizeof(TLV_DISKCOLOR)) {
+                TLV_DISKCOLOR* pTlv_DiskColor;
+
+                pTlv_DiskColor = (TLV_DISKCOLOR*)&message[tlvHead + sizeof(TLV_HEADER)];
+                diskcolor = (DISKCOLORS)pTlv_DiskColor->diskcolor;
+
+                isDiskColorAvailable = true;
+            }
+            break;
+        case TYPE::VERSION:
+            // Check TLV data length
+            if (valueLen == sizeof(TLV_HEADER) + sizeof(TLV_VERSION)) {
+                TLV_VERSION* pTlv_Version;
+
+                pTlv_Version = (TLV_VERSION*)&message[tlvHead + sizeof(TLV_VERSION)];
+                version = (unsigned _int8)pTlv_Version->version;
+
+                isVersionAvailable = true;
+            }
+            break;
+        case TYPE::TEXTINFO:
+            TLV_TEXTINFO* pTlv_TextInfo;
+
+            pTlv_TextInfo = (TLV_TEXTINFO*)&message[tlvHead + sizeof(TLV_HEADER)];
+            textInfoHead = &pTlv_TextInfo->textHead;
+            textInfoLengh = valueLen - sizeof(TLV_HEADER);
+
+            isTextInfoAvailable = true;
             break;
         default:
             break;
@@ -233,7 +287,6 @@ int MessageParser::getTLVParamsReason()
     // Availability check
     if (isMessageDataAvailable == false) return -1;
 
-
     // Return
     return 0;
 }
@@ -249,11 +302,13 @@ int MessageParser::getTLVParamsReason()
 //		0		Succeed
 //		-1		Received message is not set yet.
 //
-int MessageParser::getTLVParamsVersion()
+int MessageParser::getTLVParamsVersion(unsigned _int8* _version)
 {
     // Availability check
     if (isMessageDataAvailable == false) return -1;
 
+    // Store the data
+    *_version = version;
 
     // Return
     return 0;
@@ -270,11 +325,86 @@ int MessageParser::getTLVParamsVersion()
 //		0		Succeed
 //		-1		Received message is not set yet.
 //
-int MessageParser::getTLVParamsTextInfo()
+int MessageParser::getTLVParamsTextInfo(char* _textInfo, size_t _maxLength)
 {
     // Availability check
     if (isMessageDataAvailable == false) return -1;
 
+    // Store the data
+    strncpy_s(_textInfo, _maxLength, textInfoHead, textInfoLengh);
+
+    // Return
+    return 0;
+}
+
+//
+//	Function Name: getTLVParamsGameId
+//	Summary: Get the game ID in the received message
+//	
+//	In:
+//      None
+//
+//	Return:
+//		0		Succeed
+//		-1		Received message is not set yet.
+//
+int MessageParser::getTLVParamsGameId(GameId* _gameId)
+{
+    // Availability check
+    if (isMessageDataAvailable == false) return -1;
+    if (isGameIdAvailable == false) return -2;
+
+    // Store the data
+    _gameId->pid = tlvGameid.gameId.pid;
+    _gameId->time = tlvGameid.gameId.time;
+
+    // Return
+    return 0;
+}
+
+//
+//	Function Name: getTLVParamsGameId
+//	Summary: Get the game ID in the received message
+//	
+//	In:
+//      None
+//
+//	Return:
+//		0		Succeed
+//		-1		Received message is not set yet.
+//
+int MessageParser::getTLVParamsResult(RESULT *_result)
+{
+    // Availability check
+    if (isMessageDataAvailable == false) return -1;
+    if (isResultAvailable == false) return -2;
+
+    // Store the data
+    *_result = result;
+
+    // Return
+    return 0;
+}
+
+//
+//	Function Name: getTLVParamsGameId
+//	Summary: Get the game ID in the received message
+//	
+//	In:
+//      None
+//
+//	Return:
+//		0		Succeed
+//		-1		Received message is not set yet.
+//
+int MessageParser::getTLVParamsDiskColor(DISKCOLORS *_diskcolor)
+{
+    // Availability check
+    if (isMessageDataAvailable == false) return -1;
+    if (isDiskColorAvailable == false) return -2;
+
+    // Store the data
+    *_diskcolor = diskcolor;
 
     // Return
     return 0;

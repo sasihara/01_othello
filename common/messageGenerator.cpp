@@ -1,5 +1,6 @@
 #include <memory.h>
 #include "externalThinkerMessages.hpp"
+#include "othello.hpp"
 #include "messageGenerator.hpp"
 
 //
@@ -69,15 +70,15 @@ int MessageGenerator::addTLVID(int id)
 {
 	if (initilized == false) return -1;
 
-	if (head + sizeof(TLV_HEADER) + sizeof(ID) < sendDataMaxSize) {
+	if (head + sizeof(TLV_HEADER) + sizeof(TLV_ID) < sendDataMaxSize) {
 		((TLV_HEADER*)(&sendData[head]))->Type = (unsigned _int8)TYPE::ID;
-		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(ID);
+		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(TLV_ID);
 		head += sizeof(TLV_HEADER);
 		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
 
-		((ID*)(&sendData[head]))->id = (unsigned _int16)id;
-		head += sizeof(ID);
-		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(ID);
+		((TLV_ID*)(&sendData[head]))->id = (unsigned _int16)id;
+		head += sizeof(TLV_ID);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_ID);
 	}
 	else {
 		failed = true;
@@ -103,16 +104,16 @@ int MessageGenerator::addTLVPlace(unsigned _int8 x, unsigned _int8 y)
 {
 	if (initilized == false) return -1;
 
-	if (head + sizeof(TLV_HEADER) + sizeof(PLACE) < sendDataMaxSize) {
+	if (head + sizeof(TLV_HEADER) + sizeof(TLV_PLACE) < sendDataMaxSize) {
 		((TLV_HEADER*)(&sendData[head]))->Type = (unsigned _int8)TYPE::PLACE;
-		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(PLACE);
+		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(TLV_PLACE);
 		head += sizeof(TLV_HEADER);
 		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
 
-		((PLACE*)(&sendData[head]))->x = x;
-		((PLACE*)(&sendData[head]))->y = y;
-		head += sizeof(PLACE);
-		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(PLACE);
+		((TLV_PLACE*)(&sendData[head]))->x = x;
+		((TLV_PLACE*)(&sendData[head]))->y = y;
+		head += sizeof(TLV_PLACE);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_PLACE);
 	}
 	else {
 		failed = true;
@@ -143,7 +144,7 @@ int MessageGenerator::addTLVBoard(DISKCOLORS board[64])
 		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
 		head += sizeof(TLV_HEADER);
 
-		memcpy(((BOARD*)(&sendData[head]))->board, board, BOARDSIZE_IN_BYTE);
+		memcpy(((TLV_BOARD*)(&sendData[head]))->board, board, BOARDSIZE_IN_BYTE);
 		head += BOARDSIZE_IN_BYTE;
 		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += BOARDSIZE_IN_BYTE;
 	}
@@ -170,15 +171,124 @@ int MessageGenerator::addTLVTURN(int turn)
 {
 	if (initilized == false) return -1;
 
-	if (head + sizeof(TLV_HEADER) + sizeof(TURN) < sendDataMaxSize) {
+	if (head + sizeof(TLV_HEADER) + sizeof(TLV_TURN) < sendDataMaxSize) {
 		((TLV_HEADER*)(&sendData[head]))->Type = (unsigned _int8)TYPE::TURN;
-		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(TURN);
+		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(TLV_TURN);
 		head += sizeof(TLV_HEADER);
 		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
 
-		((TURN*)(&sendData[head]))->turn = turn;
-		head += sizeof(TURN);
-		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TURN);
+		((TLV_TURN*)(&sendData[head]))->turn = turn;
+		head += sizeof(TLV_TURN);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_TURN);
+	}
+	else {
+		failed = true;
+		return -1;
+	}
+
+	return 0;
+}
+
+int MessageGenerator::addTLVGameId(GameId _gameId)
+{
+	if (initilized == false) return -1;
+
+	if (head + sizeof(TLV_HEADER) + sizeof(TLV_GAMEID) < sendDataMaxSize) {
+		((TLV_HEADER*)(&sendData[head]))->Type = (unsigned _int8)TYPE::TLVID_GAMEID;
+		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(TLV_GAMEID);
+		head += sizeof(TLV_HEADER);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
+		((TLV_GAMEID*)(&sendData[head]))->gameId.time = _gameId.time;
+		((TLV_GAMEID*)(&sendData[head]))->gameId.pid = _gameId.pid;
+		head += sizeof(TLV_GAMEID);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_GAMEID);
+	}
+	else {
+		failed = true;
+		return -1;
+	}
+
+	return 0;
+}
+
+int MessageGenerator::addTLVResult(RESULT winner)
+{
+	if (initilized == false) return -1;
+
+	if (head + sizeof(TLV_HEADER) + sizeof(TLV_RESULT) < sendDataMaxSize) {
+		((TLV_HEADER*)(&sendData[head]))->Type = (unsigned _int8)TYPE::RESULT;
+		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(TLV_RESULT);
+		head += sizeof(TLV_HEADER);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
+		((TLV_RESULT*)(&sendData[head]))->result = winner;
+		head += sizeof(TLV_RESULT);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_RESULT);
+	}
+	else {
+		failed = true;
+		return -1;
+	}
+
+	return 0;
+}
+
+int MessageGenerator::addTLVDiskColor(DISKCOLORS diskcolor)
+{
+	if (initilized == false) return -1;
+
+	if (head + sizeof(TLV_HEADER) + sizeof(TLV_DISKCOLOR) < sendDataMaxSize) {
+		((TLV_HEADER*)(&sendData[head]))->Type = (unsigned _int8)TYPE::DISKCOLOR;
+		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(TLV_DISKCOLOR);
+		head += sizeof(TLV_HEADER);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
+		((TLV_DISKCOLOR*)(&sendData[head]))->diskcolor = diskcolor;
+		head += sizeof(TLV_DISKCOLOR);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_DISKCOLOR);
+	}
+	else {
+		failed = true;
+		return -1;
+	}
+
+	return 0;
+}
+
+int MessageGenerator::addTLVVersion(unsigned _int8 version)
+{
+	if (initilized == false) return -1;
+
+	if (head + sizeof(TLV_HEADER) + sizeof(TLV_VERSION) < sendDataMaxSize) {
+		((TLV_HEADER*)(&sendData[head]))->Type = (unsigned _int8)TYPE::VERSION;
+		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + sizeof(TLV_VERSION);
+		head += sizeof(TLV_HEADER);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
+		((TLV_VERSION*)(&sendData[head]))->version = version;
+		head += sizeof(TLV_VERSION);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_VERSION);
+	}
+	else {
+		failed = true;
+		return -1;
+	}
+
+	return 0;
+}
+
+int MessageGenerator::addTLVTextInfo(const char *textInfo)
+{
+	if (initilized == false) return -1;
+
+	size_t textInfoLength = strlen(textInfo);
+
+	if (head + sizeof(TLV_HEADER) + textInfoLength < sendDataMaxSize) {
+		((TLV_HEADER*)(&sendData[head]))->Type = (unsigned _int8)TYPE::TEXTINFO;
+		((TLV_HEADER*)(&sendData[head]))->Length = sizeof(TLV_HEADER) + textInfoLength;
+		head += sizeof(TLV_HEADER);
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += sizeof(TLV_HEADER);
+		strcpy_s(&((TLV_TEXTINFO*)(&sendData[head]))->textHead, sendDataMaxSize - head - sizeof(TLV_HEADER), textInfo);
+
+		head += textInfoLength;
+		((MESSAGEHEADER*)(&sendData[0]))->MessageLength += textInfoLength;
 	}
 	else {
 		failed = true;

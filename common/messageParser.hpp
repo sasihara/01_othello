@@ -1,4 +1,5 @@
 #pragma once
+#include "externalThinkerMessages.hpp"
 
 class MessageParser {
 public:
@@ -9,8 +10,12 @@ public:
 	int getTLVParamsTurn(int* _turn);
 	int getTLVParamsPlace(int* _x, int* _y);
 	int getTLVParamsReason();
-	int getTLVParamsVersion();
-	int getTLVParamsTextInfo();
+	int getTLVParamsVersion(unsigned _int8 *_version);
+	int getTLVParamsTextInfo(char *_textInfo, size_t _maxLength);
+	int getTLVParamsGameId(GameId* _gameId);
+	int getTLVParamsResult(RESULT* _result);
+	int getTLVParamsDiskColor(DISKCOLORS* _diskcolor);
+
 	int free();
 
 private:
@@ -30,4 +35,20 @@ private:
 
 	bool isPlaceDataAvailable = false;
 	unsigned _int8* x, * y;
+
+	bool isGameIdAvailable = false;
+	TLV_GAMEID tlvGameid;
+
+	bool isResultAvailable = false;
+	RESULT result;
+
+	bool isDiskColorAvailable = false;
+	DISKCOLORS diskcolor;
+
+	bool isVersionAvailable = false;
+	unsigned _int8 version;
+
+	bool isTextInfoAvailable = false;
+	char* textInfoHead;
+	size_t textInfoLengh;
 };

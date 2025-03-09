@@ -64,7 +64,6 @@ int ExternalThinkerHandler::init()
 	sock = -1;
 	currentReqId = 0;
 	TimerIdWaitThinkAccept = 0;
-	currentReqId = currentReqId = 0;
 
 	memset(board, 0, sizeof(board));
 
@@ -141,8 +140,13 @@ int ExternalThinkerHandler::setParam(char* _hostname, int _port, HWND _hWnd)
 	hints.ai_protocol = IPPROTO_UDP;
 
 	// For supporting IPv6, getaddrinfo should be used instead of gethostbyname()
-	if (getaddrinfo(hostname, LOCAL_PORT_NUM_STR, &hints, &res0) != 0) {
+	char strPort[16];
+	if (_itoa_s(port, strPort, sizeof(strPort), 10) != 0) {
 		return -1;
+	}
+
+	if (getaddrinfo(hostname, strPort, &hints, &res0) != 0) {
+		return -2;
 	}
 
 	// Prepare socket using possible parameter sets
@@ -152,11 +156,11 @@ int ExternalThinkerHandler::setParam(char* _hostname, int _port, HWND _hWnd)
 		if (sock >= 0) break;
 	}
 
-	if (sock < 0) return -2;		// Failed to prepare socket
+	if (sock < 0) return -3;		// Failed to prepare socket
 
 	// Set to receive ivents for the socket as WSA messages
 	if (WSAAsyncSelect(sock, _hWnd, WSOCK_SELECT, FD_READ) == SOCKET_ERROR) {
-		return -3;
+		return -4;
 	}
 
 	state = PROTOCOLSTATES::SOCKET_READY;
@@ -234,7 +238,7 @@ int ExternalThinkerHandler::sendInformationRequest()
 //		-3	Failed to send ThinkRequest message
 //		-4	Failed to set timer.
 //
-int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[64], HWND _hWnd)
+int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[64], GameId gameId, HWND _hWnd)
 {
 	switch (state) {
 	case PROTOCOLSTATES::INIT:
@@ -252,6 +256,7 @@ int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[64], HWN
 		messageGenerator.addTLVID(currentReqId);							// ID TLV
 		messageGenerator.addTLVBoard(board);								// BOARD TLV
 		messageGenerator.addTLVTURN(turn);									// TURN TLV
+		messageGenerator.addTLVGameId(gameId);								// Game ID TLV
 
 		// Check if building the message finished successfully
 		if ((messageLength = messageGenerator.getSize()) < 0) return -1;
@@ -293,6 +298,7 @@ int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[64], HWN
 		// transit to WAITING_THINK_ACCEPT_RESP to wait for Think Accept.
 		break;
 	default:
+		return -5;
 		break;
 	}
 
@@ -300,7 +306,70 @@ int ExternalThinkerHandler::sendThinkRequest(int turn, DISKCOLORS board[64], HWN
 }
 
 //
-//	Function Name: think
+//	Function Name: sendGameFinished
+//	Summary: Send message to external thinker to find the best place for the current player.
+//	
+//	In:
+//		No parameters.
+//
+//	Return:
+//		0	Success
+//		-1	Failed to set socket to WSA socket.
+//		-2	Failed to set WSASyncSelect
+//		-3	Failed to send ThinkRequest message
+//		-4	Failed to set timer.
+//
+int ExternalThinkerHandler::sendGameFinished(GameId gameId, DISKCOLORS diskcolor, RESULT result, HWND _hWnd)
+{
+	switch (state) {
+	case PROTOCOLSTATES::INIT:
+	case PROTOCOLSTATES::SOCKET_READY:
+		break;
+	case PROTOCOLSTATES::THINKER_AVAILABLE:
+	{
+		// Get new ID, transmit Think Request, start timer and then 
+		// transit to WAITING_THINK_ACCEPT_RESP to wait for Think Accept.
+		// At first, prepare memory for the sending message.
+		MessageGenerator messageGenerator;
+
+		messageGenerator.SetParams(message, MAX_MESSAGE_LENGTH);
+		messageGenerator.makeMessageHeader(MESSAGETYPE::GAME_FINISHED);		// Header
+		messageGenerator.addTLVGameId(gameId);								// Game ID TLV
+		messageGenerator.addTLVResult(result);								// Winner TLV
+		messageGenerator.addTLVDiskColor(diskcolor);						// Diskcolor TLV
+
+		// Check if building the message finished successfully
+		if ((messageLength = messageGenerator.getSize()) < 0) return -1;
+
+		// Set to receive ivents for the socket as WSA messages
+		if (WSAAsyncSelect(sock, _hWnd, WSOCK_SELECT, FD_READ) == SOCKET_ERROR) {
+			return -2;
+		}
+
+		// Send Think Request
+		//int nSize = sendto(sock, (const char*)message, messageLength, 0, res->ai_addr, res->ai_addrlen);
+		int nSize = sendto(sock, (const char*)message, messageLength, 0, res->ai_addr, (int)res->ai_addrlen);
+
+		// Check the result
+		if (nSize == SOCKET_ERROR) {
+			return -3;
+		}
+
+		break;
+	}
+	case PROTOCOLSTATES::WAITING_THINK_ACCEPT_RESP:
+	case PROTOCOLSTATES::WAITING_THINK_RESP:
+		break;
+	default:
+		return -5;
+		break;
+	}
+
+	return 0;
+}
+
+//
+//	Function Name: receiveMessages
 //	Summary: Receive and process received message.
 //	
 //	In:
@@ -320,6 +389,7 @@ int ExternalThinkerHandler::receiveMessages()
 {
 	char buf[1024];
 	int nBytesReceived;
+	int ret;
 
 	// Receive data
 	nBytesReceived = recv(sock, buf, sizeof(buf), 0);
@@ -355,7 +425,7 @@ int ExternalThinkerHandler::receiveMessages()
 				TimerIdWaitThinkResponse = SetTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_RESPONSE, WAIT_TIME_THINK_RESPONSE * 1000, NULL);
 
 				if (TimerIdWaitThinkResponse == 0) {
-					return -7;
+					throw -8;
 				}
 
 				// Transit to WAITING_THINK_RESP
@@ -385,15 +455,18 @@ int ExternalThinkerHandler::receiveMessages()
 			case PROTOCOLSTATES::WAITING_THINK_RESP:
 				// Check the ID
 				int respId;
-				messageParser.getTLVParamsID(&respId);
-				if (respId != currentReqId) {
+				ret = messageParser.getTLVParamsID(&respId);
+				if (ret < 0) {
 					throw -4;
+				}
+				else if (respId != currentReqId) {
+					throw -5;
 				}
 
 				// Get the position
 				int xPos, yPos;
 				if (messageParser.getTLVParamsPlace(&xPos, &yPos) != 0) {
-					throw -5;
+					throw -6;
 				}
 
 				// Update board.
@@ -416,6 +489,19 @@ int ExternalThinkerHandler::receiveMessages()
 		case MESSAGETYPE::INFORMATION_RESPONSE:
 			switch (state) {
 			case PROTOCOLSTATES::WAITING_INFORMATION_RESP:
+				// Get version
+				ret = messageParser.getTLVParamsVersion(&version);
+				if (ret == 0) {
+					isVersionAvailable = true;
+				}
+
+				// Get information of the thinker
+				char lalala[64];
+				ret = messageParser.getTLVParamsTextInfo(textInfo, sizeof(textInfo));
+				if (ret == 0) {
+					isTextInfoAvailable = true;
+				}
+
 				// Transit to THINKER_AVAILABLE state
 				state = PROTOCOLSTATES::THINKER_AVAILABLE;
 				break;

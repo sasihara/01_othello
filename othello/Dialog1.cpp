@@ -1,6 +1,7 @@
 #include "framework.h"
-#include "othello.hpp"
 #include "think.hpp"
+#include "externalThinkerMessages.hpp"
+#include "othello.hpp"
 #include "externalThinkerHandler.hpp"
 #include <stdio.h>
 
@@ -21,9 +22,36 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_INITDIALOG:
 	{
-		// Check to "User" for Black and White
-		SendMessage(GetDlgItem(hDlg, IDC_RADIO1), BM_SETCHECK, BST_CHECKED, 0);
-		SendMessage(GetDlgItem(hDlg, IDC_RADIO4), BM_SETCHECK, BST_CHECKED, 0);
+		// Check to default for Black and White
+		switch (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK)) {
+		case PLAYERTYPE::PLAYERTYPE_USER:
+			SendMessage(GetDlgItem(hDlg, IDC_RADIO1), BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
+			SendMessage(GetDlgItem(hDlg, IDC_RADIO2), BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL:
+			SendMessage(GetDlgItem(hDlg, IDC_RADIO3), BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		default:
+			SendMessage(GetDlgItem(hDlg, IDC_RADIO1), BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		}
+
+		switch (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE)) {
+		case PLAYERTYPE::PLAYERTYPE_USER:
+			SendMessage(GetDlgItem(hDlg, IDC_RADIO4), BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
+			SendMessage(GetDlgItem(hDlg, IDC_RADIO5), BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL:
+			SendMessage(GetDlgItem(hDlg, IDC_RADIO6), BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		default:
+			SendMessage(GetDlgItem(hDlg, IDC_RADIO4), BM_SETCHECK, BST_CHECKED, 0);
+			break;
+		}
 
 		// Limit the text length for port edit boxes
 		HWND chwnd = GetDlgItem(hDlg, IDC_EDIT2);
@@ -34,10 +62,24 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SendMessage(chwnd, EM_SETLIMITTEXT, (WPARAM)size, 0);
 
 		// Set initial texts
-		SetWindowText(GetDlgItem(hDlg, IDC_EDIT1), _TEXT("localhost"));
-		SetWindowText(GetDlgItem(hDlg, IDC_EDIT2), _TEXT("60001"));
-		SetWindowText(GetDlgItem(hDlg, IDC_EDIT3), _TEXT("localhost"));
-		SetWindowText(GetDlgItem(hDlg, IDC_EDIT4), _TEXT("60001"));
+		SetWindowText(GetDlgItem(hDlg, IDC_EDIT1), gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].sHostname);
+		SetWindowText(GetDlgItem(hDlg, IDC_EDIT2), gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].sPort);
+		SetWindowText(GetDlgItem(hDlg, IDC_EDIT3), gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sHostname);
+		SetWindowText(GetDlgItem(hDlg, IDC_EDIT4), gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sPort);
+
+		// Set auto repeat checkbox
+		if (gaming.autoRepeat == true) {
+			SendMessage(GetDlgItem(hDlg, IDC_CHECK1), BM_SETCHECK, BST_CHECKED, 0);
+		}
+		else {
+			SendMessage(GetDlgItem(hDlg, IDC_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0);
+		}
+
+		// Set timer for waiting the response
+		if (gaming.autoRepeat == true) {
+			UINT_PTR TimerIdWaitDisablingAutoRepeat;
+			TimerIdWaitDisablingAutoRepeat = SetTimer(hDlg, (INT_PTR)TIMERID::WAIT_DISABLING_AUTOREPEAT, WAIT_TIME_DISABLING_AUTOREPEAT * 1000, NULL);
+		}
 
 		// Update state
 		dialogState = DIALOG_STATES::STATE_INIT;
@@ -46,6 +88,9 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_COMMAND:
 	{
 		if (LOWORD(wParam) == IDOK) {
+			// Disable timer
+			KillTimer(hDlg, (INT_PTR)TIMERID::WAIT_DISABLING_AUTOREPEAT);
+
 			// Check radio buttons for black
 			if (SendMessage(GetDlgItem(hDlg, IDC_RADIO1), BM_GETCHECK, 0, 0) == BST_CHECKED) {
 				gaming.setPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK, PLAYERTYPE::PLAYERTYPE_USER);
@@ -68,11 +113,25 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				gaming.setPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE, PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL);
 			}
 
+			// Get hostname and port number in the dialog box
+			GetDlgItemText(hDlg, IDC_EDIT1, (TCHAR*)gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].sHostname, sizeof(gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].sHostname) / sizeof(TCHAR));
+			GetDlgItemText(hDlg, IDC_EDIT2, (TCHAR*)gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].sPort, sizeof(gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].sPort) / sizeof(TCHAR));
+			GetDlgItemText(hDlg, IDC_EDIT3, (TCHAR*)gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sHostname, sizeof(gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sHostname) / sizeof(TCHAR));
+			GetDlgItemText(hDlg, IDC_EDIT4, (TCHAR*)gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sPort, sizeof(gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sPort) / sizeof(TCHAR));
+
+			// Get auto repeat checkbox
+			if (SendMessage(GetDlgItem(hDlg, IDC_CHECK1), BM_GETCHECK, 0, 0) == BST_CHECKED) {
+				gaming.autoRepeat = true;
+			}
+			else {
+				gaming.autoRepeat = false;
+			}
+
 			// Check edit boxes to input external thinker for black
 			// If valid strings are set, check if valid response is received from external thinker or not.
 			if (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK) == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
 				// Fetch the input data for black and send Information Request
-				ret = checkExternalThinker(hDlg, IDC_EDIT1, IDC_EDIT2, PLAYERINDEX::PLAYERINDEX_BLACK);
+				ret = checkExternalThinker(hDlg, PLAYERINDEX::PLAYERINDEX_BLACK);
 
 				if (ret == 0) {
 					// Update state
@@ -86,7 +145,7 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				externalThinkerHandler[(int)PLAYERINDEX::PLAYERINDEX_BLACK].init();
 
 				// Fetch the input data for white and send Information Request
-				ret = checkExternalThinker(hDlg, IDC_EDIT3, IDC_EDIT4, PLAYERINDEX::PLAYERINDEX_WHITE);
+				ret = checkExternalThinker(hDlg, PLAYERINDEX::PLAYERINDEX_WHITE);
 
 				if (ret == 0) {
 					// Update state
@@ -104,6 +163,10 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				// Start the game
 				StartGame(hDlg);
 			}
+		}
+		else if (LOWORD(wParam) == IDCANCEL) {
+			// Disable timer
+			KillTimer(hDlg, (INT_PTR)TIMERID::WAIT_DISABLING_AUTOREPEAT);
 		}
 
 		// Closing the Dialog box
@@ -138,7 +201,7 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				// If white is not external thinker, start gaming.
 				if (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE) == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
 					// Call ExternalThinkerHandler.init() for white
-					ret = checkExternalThinker(hDlg, IDC_EDIT3, IDC_EDIT4, PLAYERINDEX::PLAYERINDEX_WHITE);
+					ret = checkExternalThinker(hDlg, PLAYERINDEX::PLAYERINDEX_WHITE);
 
 					if (ret == 0) {
 						// Update state
@@ -227,6 +290,16 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				break;
 			}
 		}
+		else if (wParam == (WPARAM)TIMERID::WAIT_DISABLING_AUTOREPEAT) {
+			KillTimer(hDlg, (INT_PTR)TIMERID::WAIT_DISABLING_AUTOREPEAT);
+
+			// Get auto repeat checkbox
+			if (SendMessage(GetDlgItem(hDlg, IDC_CHECK1), BM_GETCHECK, 0, 0) == BST_CHECKED) {
+				// Push "OK" button automatically
+				PostMessage(hDlg, WM_COMMAND, IDOK, 0);
+				gaming.autoRepeat = true;
+			}
+		}
 		else {
 			// Abnormal behaviour, do nothing.
 		}
@@ -255,28 +328,22 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 //		-3	Failed to prepare sockets to the hostname and the port number.
 //		-4	Faeild to send Information Request.
 //
-int checkExternalThinker(HWND hDlg, int IDCHostName, int IDCPort, PLAYERINDEX playerIndex)
+int checkExternalThinker(HWND hDlg, PLAYERINDEX playerIndex)
 {
 	// Check for Edit boxes if the player type is PLAYERTYPE_COMPUTER_EXTERNAL
-	TCHAR sHostname[256];
-	TCHAR sPort[6];
 	char hostname[256];
 	int port;
 
-	// Get hostname and port number in the dialog box
-	GetDlgItemText(hDlg, IDCHostName, (TCHAR*)sHostname, sizeof(sHostname) / sizeof(TCHAR));
-	GetDlgItemText(hDlg, IDCPort, (TCHAR*)sPort, sizeof(sPort) / sizeof(TCHAR));
-
 	// Check if both hostname and port are specified or not
-	if (_tcslen(sHostname) == 0 || _tcslen(sPort) == 0) {
+	if (_tcslen(gaming.playerInfo[(size_t)playerIndex].sHostname) == 0 || _tcslen(gaming.playerInfo[(size_t)playerIndex].sPort) == 0) {
 		MessageBox(hDlg, TEXT("Hostname and Port must be specified for Black."), TEXT("Error"), MB_OK | MB_ICONWARNING);
 		return -1;
 	}
 
 	// Convert sHostname to hostname, sPort to port
 #ifdef UNICODE
-	WideCharToMultiByte(CP_ACP, 0, sHostname, -1, hostname, 256, NULL, NULL);
-	port = _wtoi(sPort);
+	WideCharToMultiByte(CP_ACP, 0, gaming.playerInfo[(size_t)playerIndex].sHostname, -1, hostname, 256, NULL, NULL);
+	port = _wtoi(gaming.playerInfo[(size_t)playerIndex].sPort);
 #else
 	strcpy_s(hostname, 256, sHostname);
 	port = atoi(sPort);

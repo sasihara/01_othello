@@ -10,6 +10,8 @@
 #include "think.hpp"
 #include "externalThinkerHandler.hpp"
 #include <stdio.h>
+#include <time.h>
+#include <process.h>
 
 constexpr auto MAX_LOADSTRING = 100;
 
@@ -274,12 +276,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		else{
 			DISKCOLORS workBoard[64];
+			GameId gameId;
 
 			// Get current board from Board object.
 			board.CopyBoard(workBoard);
 
+			// Get Game Id
+			ret = gaming.getGameId(&gameId);
+			if (ret < 0) {
+				MessageBox(hWnd, TEXT("Thinker error in getGameId. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
+				gaming.InitGame();
+				break;
+			}
+
 			// Send Think Request to external thinker
-			int ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn())].sendThinkRequest(gaming.getTurn(), workBoard, hWnd);
+			int ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn())].sendThinkRequest(gaming.getTurn(), workBoard, gameId, hWnd);
 
 			// Check the result
 			if (ret < 0) {
@@ -386,22 +397,67 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 //	Return:
 //		No return values.
 //
-void displayGameOver(HWND hWnd)
+void displayGameOver(HWND hWnd, DISKCOLORS winner)
 {
-	// Display who won this game
-	// Count disks for each color
-	int numBlack = 0, numWhite = 0;
-	for (int i = 0; i < 8; i++) {
-		for (int j = 0; j < 8; j++) {
-			if (board.GetDisk(i, j) == DISKCOLORS::COLOR_BLACK) numBlack++;
-			else if (board.GetDisk(i, j) == DISKCOLORS::COLOR_WHITE) numWhite++;
-		}
+	// Display the winner
+	if (winner == DISKCOLORS::COLOR_BLACK) MessageBox(hWnd, TEXT("Black wins!!"), TEXT("Game Finished"), MB_OK);
+	else if (winner == DISKCOLORS::COLOR_WHITE) MessageBox(hWnd, TEXT("White wins!!"), TEXT("Game Finished"), MB_OK);
+	else MessageBox(hWnd, TEXT("The game was even."), TEXT("Game Finished"), MB_OK);
+}
+
+int storeGameResult(char* blackName, char* whiteName, DISKCOLORS winner, int numBlack, int numWhite)
+{
+	FILE* f;
+	time_t timeValue;
+	struct tm timeObject;
+
+	time(&timeValue);
+	localtime_s(&timeObject, &timeValue);
+
+	if (fopen_s(&f, RESULT_FILENAME, "a") != 0) {
+		return -1;
 	}
 
-	// Display the winner
-	if (numBlack > numWhite) MessageBox(hWnd, TEXT("Black wins!!"), TEXT("Game Finished"), MB_OK);
-	else if (numBlack < numWhite) MessageBox(hWnd, TEXT("White wins!!"), TEXT("Game Finished"), MB_OK);
-	else if (numBlack == numWhite) MessageBox(hWnd, TEXT("The game was even."), TEXT("Game Finished"), MB_OK);
+	fprintf(f, "%04d/%02d/%02d %02d:%02d:%02d,%s,%s,%d,%d,%d,%d,", 
+		timeObject.tm_year + 1900,
+		timeObject.tm_mon + 1,
+		timeObject.tm_mday,
+		timeObject.tm_hour,
+		timeObject.tm_min,
+		timeObject.tm_sec,
+		blackName,
+		whiteName, 
+		winner == DISKCOLORS::COLOR_BLACK ? 1 : winner == DISKCOLORS::COLOR_WHITE ? 0 : 0,
+		winner == DISKCOLORS::COLOR_WHITE ? 1 : winner == DISKCOLORS::COLOR_BLACK ? 0 : 0,
+		numBlack,
+		numWhite
+	);
+
+	fprintf(f, "\"");
+
+	for (int y = 0; y < 8; y++) {
+		for (int x = 0; x < 8; x++) {
+			DISKCOLORS color = board.GetDisk(x, y);
+
+			switch (color) {
+			case DISKCOLORS::COLOR_BLACK:
+				fprintf(f, "X");
+				break;
+			case DISKCOLORS::COLOR_WHITE:
+				fprintf(f, "O");
+				break;
+			default:
+				fprintf(f, "-");
+				break;
+			}
+		}
+
+		if(y < 7) fprintf(f, "\n");
+	}
+
+	fprintf(f, "\"\n");
+
+	fclose(f);
 }
 
 //
@@ -416,18 +472,131 @@ void displayGameOver(HWND hWnd)
 //
 void switchToNextPlayer(HWND hWnd)
 {
+	int ret;
+
 	// Game over decision
 	if (gaming.IsGameOver() == true) {
+		// Update Board
+		display.UpdateBoard(gaming.IsNextPlayerMustPass());
+
+		// Get the winner
+		DISKCOLORS winner;
+		int numBlack, numWhite;
+
+		ret = gaming.getWinner(&winner, &numBlack, &numWhite);
+
+		if (ret != 0) {
+			return;
+		}
+
 		// Display Gameover
-		displayGameOver(hWnd);
+		if (gaming.autoRepeat == false) {
+			displayGameOver(hWnd, winner);
+		}
+		else {
+			Sleep(2000);
+		}
+
+		// Check player names to store the game result
+		char *playerName[2];
+
+		switch (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK)) {
+		case PLAYERTYPE::PLAYERTYPE_USER:
+			playerName[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK] = (char*)"User";
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
+			playerName[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK] = (char*)EMBEDED_THINKER_INFOTEXT;
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL:
+			ret = externalThinkerHandler[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].getTextInfo(&playerName[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK]);
+			if(ret < 0) playerName[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK] = (char*)"Unknown External Thinker";
+			break;
+		}
+
+		switch (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE)) {
+		case PLAYERTYPE::PLAYERTYPE_USER:
+			playerName[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE] = (char*)"User";
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
+			playerName[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE] = (char*)EMBEDED_THINKER_INFOTEXT;
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL:
+			ret = externalThinkerHandler[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].getTextInfo(&playerName[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE]);
+			if (ret < 0) playerName[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE] = (char*)"Unknown External Thinker";
+			break;
+		}
+
+		// Store the game result
+		storeGameResult(playerName[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK], playerName[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE], winner, numBlack, numWhite);
+
+		// Send GameFinished message to thinker
+		GameId gameId;
+		ret = gaming.getGameId(&gameId);
+
+		if (ret != 0) {
+			return;
+		}
+
+		RESULT result;
+		DISKCOLORS currentColor, opponentColor;
+		currentColor = CURRENTPLAYER(gaming.getTurn());
+		opponentColor = OPPONENT(currentColor);
+
+		// Send the result to current player in case of using external thinker
+		if (gaming.getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
+			// resultの判定
+			if (winner == currentColor) {
+				result = RESULT::WIN;
+			}
+			else if (winner == opponentColor) {
+				result = RESULT::LOSE;
+			}
+			else {
+				result = RESULT::EVEN;
+			}
+
+			ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn())].sendGameFinished(gameId, currentColor, result, hWnd);
+		}
+
+		// Send the result to opponent player in case of using external thinker 
+		if (gaming.getOpponentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
+			// resultの判定
+			if (winner == currentColor) {
+				result = RESULT::LOSE;
+			}
+			else if (winner == opponentColor) {
+				result = RESULT::WIN;
+			}
+			else {
+				result = RESULT::EVEN;
+			}
+
+			ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn() + 1)].sendGameFinished(gameId, opponentColor, result, hWnd);
+		}
 
 		// Reset game
 		gaming.InitGame();
 
 		// Redraw the board
 		display.UpdateBoard(false);
+
+		// Open Dialog if auto repeat is enabled
+		if (gaming.autoRepeat == true) {
+			// Exchange white and black
+			PLAYERINFO tmpPlayerInfo;
+			memmove_s(&tmpPlayerInfo, sizeof(PLAYERINFO), &gaming.playerInfo[0], sizeof(PLAYERINFO));
+			memmove_s(&gaming.playerInfo[0], sizeof(PLAYERINFO), &gaming.playerInfo[1], sizeof(PLAYERINFO));
+			memmove_s(&gaming.playerInfo[1], sizeof(PLAYERINFO), &tmpPlayerInfo, sizeof(PLAYERINFO));
+
+			PostMessage(hWnd, WM_COMMAND, ID_FILE_NEWGAME, 0);
+		}
 	}
 	else {
+		gaming.incTurn();
+
+		// Update Board
+		display.UpdateBoard(gaming.IsPlayerMustPass());
+
 		//switch (PlayerInfo[turn & 1].PlayerType) {
 		switch (gaming.getCurrentPlayerType()) {
 		case PLAYERTYPE::PLAYERTYPE_USER:
@@ -503,7 +672,7 @@ int Display::UpdateBoard(bool playerMustPass)
 //	Return:
 //		0:	Succeed
 //
-int Display::DrawBoard(LPCTSTR windowTitle)
+int Display::DrawBoard(LPCWSTR windowTitle)
 {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
@@ -544,8 +713,6 @@ int Display::DrawBoard(LPCTSTR windowTitle)
 	DeleteObject(hbr);
 
 	// Draw disks
-	hOldPen = (HPEN)SelectObject(hdc, GetStockObject(NULL_PEN));
-
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
 			int cx = i * 100 + 50;
@@ -565,18 +732,17 @@ int Display::DrawBoard(LPCTSTR windowTitle)
 			default:
 				break;
 			}
+
+			SelectObject(hdc, hOldBrush);
+			DeleteObject(hbr);
 		}
 	}
-
-	SelectObject(hdc, hOldPen);
-	SelectObject(hdc, hOldBrush);
-	DeleteObject(hbr);
 
 	// Finish drawings
 	EndPaint(hWnd, &ps);
 
 	// Update Window's title
-	SetWindowText(hWnd, windowTitle);
+	SetWindowTextW(hWnd, windowTitle);
 
 	return 0;
 }
@@ -673,6 +839,13 @@ int Board::CopyBoard(DISKCOLORS _board[64])
 //
 Gaming::Gaming()
 {
+	setPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK, PLAYERTYPE::PLAYERTYPE_USER);
+	setPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE, PLAYERTYPE::PLAYERTYPE_USER);
+	_tcscpy_s(playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].sHostname, _TEXT("localhost"));
+	_tcscpy_s(playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].sPort, _TEXT("60001"));
+	_tcscpy_s(playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sHostname, _TEXT("localhost"));
+	_tcscpy_s(playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sPort, _TEXT("60001"));
+
 	InitGame();
 }
 
@@ -834,10 +1007,11 @@ int Gaming::PutDisk(int x, int y)
 	turnDisk(x, y, dirFlag);
 
 	// Switch to another player
-	turn++;
+	//turn++;
 
 	// Redraw the board
-	display.UpdateBoard(IsPlayerMustPass());
+	//display.UpdateBoard(IsPlayerMustPass());
+	//display.UpdateBoard(IsNextPlayerMustPass());
 
 	return 0;
 }
@@ -857,7 +1031,7 @@ int Gaming::Pass()
 {
 	if (IsPlayerMustPass() == true) {
 		// Switch to another player
-		turn++;
+		//turn++;
 		return 0;
 	}
 	else {
@@ -877,9 +1051,15 @@ int Gaming::Pass()
 //
 int Gaming::InitGame()
 {
+	int ret;
+
 	// Initialize game parameters
 	state = GAME_STATES::STATE_INIT;
 	turn = 0;
+
+	// ゲーム識別子をセット
+	ret = setGameId();
+	if (ret < 0) return -1;
 
 	// Initialize board
 	board.InitBoard();
@@ -1108,22 +1288,42 @@ int Gaming::setPlayerType(PLAYERINDEX player, PLAYERTYPE playerType)
 //	Return:
 //		Text for the window title.
 //
-LPCTSTR Gaming::getWindowTitle()
+LPCWSTR Gaming::getWindowTitle()
 {
 	if (state == GAME_STATES::STATE_GAMING || state == GAME_STATES::STATE_GAMING_WAITING_RESP) {
+		static wchar_t buf[128];
 		switch (getCurrentColor()) {
 		case DISKCOLORS::COLOR_BLACK:
-			if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED || getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
-				return TEXT("Othello (Black's turn, Computer is now thinking...)");
+			if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED) {
+				swprintf(buf, 128, TEXT("Othello (Black's turn, %.*s is now thinking...)"), 40, TEXT(EMBEDED_THINKER_INFOTEXT));
+				return (LPCWSTR)buf;
+			}
+			else if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
+				char *textInfo;
+				wchar_t wTextInfo[128];
+				externalThinkerHandler[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].getTextInfo(&textInfo);
+				MultiByteToWideChar(CP_UTF8, 0, textInfo, -1, wTextInfo, 128);
+
+				swprintf(buf, 128, TEXT("Othello (Black's turn, %.*s is now thinking...)"), 40, wTextInfo);
+				return (LPCWSTR)buf;
 			}
 			else {
 				return TEXT("Othello (Black's turn)");
 			}
-			return TEXT("Othello (Black's turn)");
 			break;
 		case DISKCOLORS::COLOR_WHITE:
-			if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED || getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
-				return TEXT("Othello (White's turn, Computer is now thinking...)");
+			if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED) {
+				swprintf(buf, 128, TEXT("Othello (White's turn, %.*s is now thinking...)"), 40, TEXT(EMBEDED_THINKER_INFOTEXT));
+				return (LPCWSTR)buf;
+			}
+			else if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
+				char* textInfo;
+				wchar_t wTextInfo[128];
+				externalThinkerHandler[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].getTextInfo(&textInfo);
+				MultiByteToWideChar(CP_UTF8, 0, textInfo, -1, wTextInfo, 128);
+
+				swprintf(buf, 128, TEXT("Othello (White's turn, %.*s is now thinking...)"), 40, wTextInfo);
+				return (LPCWSTR)buf;
 			}
 			else {
 				return TEXT("Othello (White's turn)");
@@ -1152,4 +1352,90 @@ LPCTSTR Gaming::getWindowTitle()
 int Gaming::getTurn()
 {
 	return turn;
+}
+
+//
+//	Function Name: setGmeId
+//	Summary: Set game identity to gameid
+//	
+//	In:
+//		No parameters.
+//
+//	Return:
+//		0:	Success
+//		-1:	Error
+//
+int Gaming::setGameId()
+{
+	time_t ret;
+
+	// Get time
+	ret = time(&gameid.time);
+	if (ret < 0) return -1;
+
+	// Get process ID
+	gameid.pid = _getpid();
+
+	return 0;
+}
+
+
+//
+//	Function Name: getGameId
+//	Summary: Get game identity
+//	
+//	In:
+//		Pointer to copy game identity.
+//
+//	Return:
+//		0:	Success
+//
+int Gaming::getGameId(GameId *_gameId)
+{
+	_gameId->time = gameid.time;
+	_gameId->pid = gameid.pid;
+
+	return 0;
+}
+
+//
+//	Function Name: getWinner
+//	Summary: Get the winner for the board.
+//	
+//	In:
+//		DISKCOLORS *winner: Pointer to store the result:
+//			The result is the value of DISKCOLORS type.
+//				DISKCOLORS::COLOR_BLACK: Black wins
+//				DISKCOLORS::COLOR_WHITE: White wins
+//				DISKCOLORS::COLOR_NONE: Even
+//
+//	Return:
+//		Result code.
+//			= 0 : Success
+//			< 0 : Error
+//			> 0 : Warning
+// 
+//	Note:
+//		This function doesn't check whether the game is really finished or not, and just checks which the number of dice is larger.
+//		Therefore checking it is necessary before calling this function.
+//
+int Gaming::getWinner(DISKCOLORS* winner, int *_numBlack, int *_numWhite)
+{
+	// Count disks for each color
+	int numBlack = 0, numWhite = 0;
+	for (int i = 0; i < 8; i++) {
+		for (int j = 0; j < 8; j++) {
+			if (board.GetDisk(i, j) == DISKCOLORS::COLOR_BLACK) numBlack++;
+			else if (board.GetDisk(i, j) == DISKCOLORS::COLOR_WHITE) numWhite++;
+		}
+	}
+
+	if (numBlack > numWhite) *winner = DISKCOLORS::COLOR_BLACK;
+	else if (numBlack < numWhite) *winner = DISKCOLORS::COLOR_WHITE;
+	else *winner = DISKCOLORS::COLOR_NONE;
+
+	*_numBlack = numBlack;
+	*_numWhite = numWhite;
+
+	return 0;
 }

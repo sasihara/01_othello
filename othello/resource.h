@@ -1,6 +1,6 @@
 ﻿//{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by othello.rc
+// Microsoft Visual C++ で生成されたインクルード ファイル。
+// othello.rc で使用
 //
 #define IDC_MYICON                      2
 #define IDD_OTHELLO_DIALOG              102
@@ -24,8 +24,12 @@
 #define IDC_STATIC1                     1008
 #define IDC_EDIT3                       1010
 #define IDC_EDIT4                       1011
+#define IDC_CHECK1                      1012
+#define IDC_CHECK2                      1013
 #define ID_FILE_NEWGAME                 32771
 #define ID_PASS                         32772
+#define ID_SETTING_REPEAT               32773
+#define ID_SETTING_EXCHANGEPLAYER       32774
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -34,8 +38,8 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        131
-#define _APS_NEXT_COMMAND_VALUE         32773
-#define _APS_NEXT_CONTROL_VALUE         1011
+#define _APS_NEXT_COMMAND_VALUE         32775
+#define _APS_NEXT_CONTROL_VALUE         1013
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

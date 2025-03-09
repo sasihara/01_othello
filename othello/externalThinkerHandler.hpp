@@ -3,7 +3,6 @@
 #include "externalThinkerMessages.hpp"
 #include "messageGenerator.hpp"
 
-#define LOCAL_PORT_NUM_STR		"60001"
 #define	WAIT_TIME_THINK_ACCEPT	5	// seconds	
 #define	MAX_RETRANS				3
 
@@ -37,6 +36,10 @@ private:
 	int messageLength;
 	char message[MAX_MESSAGE_LENGTH];
 	int numRetrans = 0;
+	bool isVersionAvailable = false;
+	unsigned _int8 version;
+	bool isTextInfoAvailable = false;
+	char textInfo[64];
 
 public:
 	ExternalThinkerHandler();
@@ -45,7 +48,18 @@ public:
 	int setParam(char* _hostname, int _port, HWND _hWnd);
 	int setWindowHandle(HWND _hwnd);
 	int sendInformationRequest();
-	int sendThinkRequest(int turn, DISKCOLORS board[64], HWND _hWnd);
+	int sendThinkRequest(int turn, DISKCOLORS board[64], GameId gameId, HWND _hWnd);
 	int receiveMessages();
 	int recendMessage();
+	int sendGameFinished(GameId gameId, DISKCOLORS diskcolor, RESULT result, HWND _hWnd);
+	int getVersion(unsigned _int8* _version) {
+		if (isVersionAvailable == false) return -1;
+		*_version = version;
+		return 0;
+	}
+	int getTextInfo(char** _textInfo) {
+		if (isTextInfoAvailable == false) return -1;
+		*_textInfo = textInfo;
+		return 0;
+	};
 };

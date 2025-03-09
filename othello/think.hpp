@@ -1,4 +1,5 @@
 #pragma once
+#include "othello.hpp"
 
 // Bit for disk character
 #define DISKCHARFLAG_EXISTENCE	0x01		// Indicates disk exsits or not

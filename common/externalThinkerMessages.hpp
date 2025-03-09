@@ -1,4 +1,5 @@
 #pragma once
+#include "othello.hpp"
 
 // define
 #define	PROTOCOL_VERSION	1
@@ -7,17 +8,8 @@
 #define BOARDSIZE_IN_BYTE	(sizeof(DISKCOLORS) * 64)
 
 // Macros
-#define	CURRENTPLAYER(turn)			(DISKCOLORS)((turn & 1) + 1)			// turn = even : 1 (COLOR_BLACK), turn = odd : 2 (COLOR_WHITE)
-#define OPPONENT(diskcolor)			(DISKCOLORS)(((int)diskcolor & 1) + 1)	// diskcolor = COLOR_BLACK : 2 (COLOR_WHITE), diskcolor = COLOR_WHITE : 1 (COLOR_BLACK)
 
 // enum
-enum class DISKCOLORS : unsigned _int16 {
-COLOR_NONE = 0,		// No disk
-	COLOR_BLACK,		// Black disk
-	COLOR_WHITE,		// White disk
-	COLOR_OUTOFBOAD		// Out of the board (used only in think.cpp)
-};
-
 enum class MESSAGETYPE {
 	THINK_REQUEST = 1,
 	THINK_ACCEPT,
@@ -28,6 +20,7 @@ enum class MESSAGETYPE {
 	QUIT,
 	INFORMATION_REQUEST,
 	INFORMATION_RESPONSE,
+	GAME_FINISHED,
 	MESSAGETYPE_LIMIT
 };
 
@@ -38,7 +31,17 @@ enum class TYPE {
 	PLACE,
 	REASON,
 	VERSION,
-	TEXTINFO
+	TEXTINFO,
+	TLVID_GAMEID,
+	RESULT,
+	DISKCOLOR
+};
+
+enum class RESULT {
+	EVEN = 0,
+	WIN,
+	LOSE,
+	RESULT_LIMIT
 };
 
 // struct
@@ -54,32 +57,44 @@ typedef struct _TLV_HEADER {
 	unsigned _int16 Length;
 } TLV_HEADER;
 
-typedef struct _ID {
+typedef struct _TLV_ID {
 	unsigned _int16 id;
-} ID;
+} TLV_ID;
 
-typedef struct _BOARD {
+typedef struct _TLV_BOARD {
 	unsigned _int8 board[64];
-} BOARD;
+} TLV_BOARD;
 
-typedef struct _TURN {
+typedef struct _TLV_TURN {
 	unsigned _int16 turn;
-} TURN;
+} TLV_TURN;
 
-typedef struct _PLACE {
+typedef struct _TLV_PLACE {
 	unsigned _int8 x;
 	unsigned _int8 y;
-} PLACE;
+} TLV_PLACE;
 
-typedef struct _REASON {
+typedef struct _TLV_REASON {
 	unsigned _int8 reason;
-} REASON;
+} TLV_REASON;
 
-typedef struct _VERSION {
+typedef struct _TLV_VERSION {
 	unsigned _int8 version;
-} VERSION;
+} TLV_VERSION;
 
-typedef struct _TEXTINFO {
+typedef struct _TLV_TEXTINFO {
 	char textHead;
-} TEXTINFO;
+} TLV_TEXTINFO;
+
+typedef struct _TLV_GAMEID {
+	GameId gameId;
+} TLV_GAMEID;
+
+typedef struct _TLV_RESULT {
+	RESULT result;
+} TLV_RESULT;
+
+typedef struct _TLV_DISKCOLOR {
+	DISKCOLORS diskcolor;
+} TLV_DISKCOLOR;
 #pragma pack(pop)
