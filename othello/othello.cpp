@@ -990,13 +990,18 @@ int Gaming::turnDiskOneDir(int xPos, int yPos, int xStep, int yStep)
 //		0: Succeed
 //		-1:	Specified position is out of the board.
 //		-2:	Player cannot place the disk at the specified place.
+//		1: Assumed that player choose the pass option
 //
 int Gaming::PutDisk(int x, int y)
 {
 	int dirFlag = 0;
 
 	// Check if specified position is on the board or not
-	if (x < 0 || x > 7 || y < 0 || y > 7) return -1;
+	if (x == 8 && y == 0) {
+		// Pass
+		return 1;
+	}
+	else if (x < 0 || x > 7 || y < 0 || y > 7) return -1;
 
 	// Check if specified position can be put for the disk
 	if ((dirFlag = check(x, y, getCurrentColor())) == 0) {
