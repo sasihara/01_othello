@@ -18,7 +18,8 @@ Intel Core i5 2.4GHz程度のCPUであれば十分遊べます。
 Microsoft Visual Studio Community 2022での動作を確認しております。それ以外の環境については未確認ですが、基本的なAPIしか使用してないため、他のバージョンでも動作する可能性は高いと思います。
 
 ## コンパイル・実行
-othello.slnとexternalThinker_v1.slnの2つのプロジェクトファイルが存在します。othello.slnはオセロゲーム本体のプロジェクトファイル、externalThinker_v1.slnは外部思考ルーチンのプロジェクトファイルになります。それぞれVisual Studioでオープンしコンパイルすると、実行バイナリがx64\Releaseフォルダの下に作成されますので、それらをダブルクリックすることで実行できます。
+- 本ソースはレポジトリ"03_thinkerV3"内のソースを参照しますので、事前にレポジトリ"03_thinkerV3"内のソースを01_othelloと同じフォルダ内にダウンロードしておいて下さい。<BR>
+- othello.slnとexternalThinker_v1.slnの2つのプロジェクトファイルが存在します。othello.slnはオセロゲーム本体のプロジェクトファイル、externalThinker_v1.slnは外部思考ルーチンのプロジェクトファイルになります。それぞれVisual Studioでオープンしコンパイルすると、実行バイナリがx64\Releaseフォルダの下に作成されますので、それらをダブルクリックすることで実行できます。
 
 ## 開発履歴
 ### 2025/3/9
