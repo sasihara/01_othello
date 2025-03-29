@@ -496,7 +496,6 @@ int ExternalThinkerHandler::receiveMessages()
 				}
 
 				// Get information of the thinker
-				char lalala[64];
 				ret = messageParser.getTLVParamsTextInfo(textInfo, sizeof(textInfo));
 				if (ret == 0) {
 					isTextInfoAvailable = true;

@@ -106,7 +106,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <DisableSpecificWarnings>%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>..\common;..\othello;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\common;..\othello;..\..\03_thinkerV3\thinkerV3;..\..\libtensorflow-cpu-windows-x86_64-2.6.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -144,7 +144,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>..\common;..\othello;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\common;..\othello;..\..\03_thinkerV3\thinkerV3;..\..\libtensorflow-cpu-windows-x86_64-2.6.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -157,6 +157,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\03_thinkerV3\thinkerV3\history.hpp" />
+    <ClInclude Include="..\..\03_thinkerV3\thinkerV3\logging.h" />
     <ClInclude Include="..\common\externalThinkerMessages.hpp" />
     <ClInclude Include="..\common\messageGenerator.hpp" />
     <ClInclude Include="..\common\messageParser.hpp" />
@@ -168,6 +170,8 @@
     <ClInclude Include="think.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\03_thinkerV3\thinkerV3\history.cpp" />
+    <ClCompile Include="..\..\03_thinkerV3\thinkerV3\logging.cpp" />
     <ClCompile Include="..\common\messageGenerator.cpp" />
     <ClCompile Include="..\common\messageParser.cpp" />
     <ClCompile Include="Dialog1.cpp" />

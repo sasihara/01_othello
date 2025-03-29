@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <process.h>
+#include "logging.h"
 
 constexpr auto MAX_LOADSTRING = 100;
 
@@ -25,6 +26,7 @@ Display display;
 Board board;
 Gaming gaming;
 ExternalThinkerHandler externalThinkerHandler[2];	// 0: Black, 1: White
+Logging logging;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -58,7 +60,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     MSG msg;
 
-    // Main message loop:
+	// Logging
+#ifdef _DEBUG
+	LOGOUT_INIT(LOGLEVEL_ALL, "thinkerV3_log.txt");
+#else
+	LOGOUT_INIT(LOGLEVEL_WARNING, "othello_log.txt");
+#endif
+	
+	// Main message loop:
     while (GetMessage(&msg, nullptr, 0, 0))
     {
         if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))

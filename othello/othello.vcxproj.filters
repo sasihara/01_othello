@@ -42,6 +42,12 @@
     <ClInclude Include="..\common\externalThinkerMessages.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\03_thinkerV3\thinkerV3\history.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\03_thinkerV3\thinkerV3\logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="othello.cpp">
@@ -60,6 +66,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="externalThinkerHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\03_thinkerV3\thinkerV3\history.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\03_thinkerV3\thinkerV3\logging.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
