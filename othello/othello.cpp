@@ -498,14 +498,6 @@ void switchToNextPlayer(HWND hWnd)
 			return;
 		}
 
-		// Display Gameover
-		if (gaming.autoRepeat == false) {
-			displayGameOver(hWnd, winner);
-		}
-		else {
-			Sleep(2000);
-		}
-
 		// Check player names to store the game result
 		char *playerName[2];
 
@@ -581,6 +573,14 @@ void switchToNextPlayer(HWND hWnd)
 			}
 
 			ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn() + 1)].sendGameFinished(gameId, opponentColor, result, hWnd);
+		}
+
+		// Display Gameover
+		if (gaming.autoRepeat == false) {
+			displayGameOver(hWnd, winner);
+		}
+		else {
+			Sleep(2000);
 		}
 
 		// Reset game
