@@ -13,6 +13,7 @@
 #include <time.h>
 #include <process.h>
 #include "logging.h"
+#include "history.hpp"
 
 constexpr auto MAX_LOADSTRING = 100;
 
@@ -27,6 +28,7 @@ Board board;
 Gaming gaming;
 ExternalThinkerHandler externalThinkerHandler[2];	// 0: Black, 1: White
 Logging logging;
+History history;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -575,6 +577,25 @@ void switchToNextPlayer(HWND hWnd)
 			ret = externalThinkerHandler[TurnToPlayerIndex(gaming.getTurn() + 1)].sendGameFinished(gameId, opponentColor, result, hWnd);
 		}
 
+		// Write to history file
+		switch (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK)) {
+		case PLAYERTYPE::PLAYERTYPE_USER:
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
+			history.finish(gameId, DISKCOLORS::COLOR_BLACK, winner == DISKCOLORS::COLOR_BLACK ? 1.0 : winner == DISKCOLORS::COLOR_WHITE ? -1.0 : 0.0);
+			break;
+		default:
+			break;
+		}
+
+		switch (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE)) {
+		case PLAYERTYPE::PLAYERTYPE_USER:
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
+			history.finish(gameId, DISKCOLORS::COLOR_WHITE, winner == DISKCOLORS::COLOR_WHITE ? 1.0 : winner == DISKCOLORS::COLOR_BLACK ? -1.0 : 0.0);
+			break;
+		default:
+			break;
+		}
+
 		// Display Gameover
 		if (gaming.autoRepeat == false) {
 			displayGameOver(hWnd, winner);
@@ -1004,6 +1025,7 @@ int Gaming::turnDiskOneDir(int xPos, int yPos, int xStep, int yStep)
 int Gaming::PutDisk(int x, int y)
 {
 	int dirFlag = 0;
+	int ret;
 
 	// Check if specified position is on the board or not
 	if (x == 8 && y == 0) {
@@ -1016,6 +1038,27 @@ int Gaming::PutDisk(int x, int y)
 	if ((dirFlag = check(x, y, getCurrentColor())) == 0) {
 		return -2;
 	}
+
+	// Add to History
+	DISKCOLORS boardToHistory[64];
+	ret = board.CopyBoard(boardToHistory);
+	if (ret < 0) return -1;
+
+	std::vector<Score> scoresList;
+	Score score;
+	score.x = x;
+	score.y = y;
+	score.n = 0;
+	score.probability = 1.0;
+	try {
+		scoresList.push_back(score);
+	}
+	catch (...) {
+		return -2;
+	}
+
+	ret = history.add(gameid, getCurrentColor(), boardToHistory, scoresList);
+	if (ret < 0) return -3;
 
 	// Turn disks 
 	turnDisk(x, y, dirFlag);

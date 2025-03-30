@@ -1,12 +1,14 @@
+#include <stdio.h>
 #include "framework.h"
 #include "think.hpp"
 #include "externalThinkerMessages.hpp"
 #include "othello.hpp"
 #include "externalThinkerHandler.hpp"
-#include <stdio.h>
+#include "history.hpp"
 
 extern Gaming gaming;
 extern ExternalThinkerHandler externalThinkerHandler[2];	// 0: Black, 1: White
+extern History history;
 
 //
 //	Function Name: Dialog1
@@ -405,6 +407,9 @@ void StartGame(HWND hDlg)
 	// Initialize variables, board and then start the game
 	gaming.InitGame();
 	//gaming.StartGame();
+
+	// Initialize History instance
+	history.init();
 
 	// Send to WndProc to trigger computer's thinker if black is set to PLAYERTYPE_COMPUTER_EMBEDED
 	switch (gaming.getCurrentPlayerType()) {
