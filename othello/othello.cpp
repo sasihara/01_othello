@@ -122,7 +122,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // Store instance handle in our global variable
 
-   HWND hWnd = CreateWindowW(szWindowClass, TEXT("Othello (Please configure game conditions)"), WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
+   HWND hWnd = CreateWindowW(szWindowClass, TEXT("Othello (Please configure game conditions)"), WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
       CW_USEDEFAULT, 0, 800, 800, nullptr, nullptr, hInstance, nullptr);
 
    // Adjust window size
