@@ -18,7 +18,7 @@
 
 #define RESULT_FILENAME	"gameResults.csv"
 
-#define	EMBEDED_THINKER_INFOTEXT	"Othello Thinker V4.00(Min-Max Based)"
+#define	EMBEDED_THINKER_INFOTEXT	"Othello Thinker V1.00(Min-Max Based)"
 
 // Messages
 #define	WM_USER_TRIGGER_THINKER				(WM_USER + 1)
@@ -105,6 +105,7 @@ public:
 	int SetParams(HWND hWnd);
 	int UpdateBoard(bool playerMustPass = false);
 	int DrawBoard(LPCWSTR windowTitle);
+	int setAutoRepeatOnMenu(bool autoRepeat);
 };
 
 class Board {

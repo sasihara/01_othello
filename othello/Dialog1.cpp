@@ -6,6 +6,7 @@
 #include "externalThinkerHandler.hpp"
 #include "history.hpp"
 
+extern Display display;
 extern Gaming gaming;
 extern ExternalThinkerHandler externalThinkerHandler[2];	// 0: Black, 1: White
 extern History history;
@@ -129,6 +130,9 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				gaming.autoRepeat = false;
 			}
 
+			// Update auto repeat check on menu
+			display.setAutoRepeatOnMenu(gaming.autoRepeat);
+
 			// Check edit boxes to input external thinker for black
 			// If valid strings are set, check if valid response is received from external thinker or not.
 			if (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_BLACK) == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
@@ -169,6 +173,12 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		else if (LOWORD(wParam) == IDCANCEL) {
 			// Disable timer
 			KillTimer(hDlg, (INT_PTR)TIMERID::WAIT_DISABLING_AUTOREPEAT);
+
+			// Set Off to Auto Repeat
+			gaming.autoRepeat = false;
+
+			// Update auto repeat check on menu
+			display.setAutoRepeatOnMenu(gaming.autoRepeat);
 		}
 
 		// Closing the Dialog box
@@ -300,6 +310,9 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				// Push "OK" button automatically
 				PostMessage(hDlg, WM_COMMAND, IDOK, 0);
 				gaming.autoRepeat = true;
+
+				// Update auto repeat check on menu
+				display.setAutoRepeatOnMenu(gaming.autoRepeat);
 			}
 		}
 		else {

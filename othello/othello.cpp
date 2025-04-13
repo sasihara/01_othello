@@ -193,6 +193,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				MessageBox(hWnd, TEXT("You can put at least one place."), TEXT("Warning"), MB_OK | MB_ICONWARNING);
 			}
 			break;
+		case ID_SETTING_REPEAT:
+			gaming.autoRepeat = !gaming.autoRepeat;
+			display.setAutoRepeatOnMenu(gaming.autoRepeat);
+			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -777,6 +781,26 @@ int Display::DrawBoard(LPCWSTR windowTitle)
 	return 0;
 }
 
+int Display::setAutoRepeatOnMenu(bool _autoRepeat)
+{
+	MENUITEMINFO menuItemInfo;
+	menuItemInfo.cbSize = sizeof(MENUITEMINFO);
+	menuItemInfo.fMask = MIIM_STATE;
+	BOOL bResult = GetMenuItemInfo(GetMenu(hWnd), ID_SETTING_REPEAT, FALSE, &menuItemInfo);
+	if (bResult) {
+		if (_autoRepeat == false) {
+			menuItemInfo.fState &= ~MFS_CHECKED; // チェックを外す
+		}
+		else {
+			menuItemInfo.fState |= MFS_CHECKED;  // チェックを入れる
+		}
+		SetMenuItemInfo(GetMenu(hWnd), ID_SETTING_REPEAT, FALSE, &menuItemInfo);
+		DrawMenuBar(hWnd); // メニューバーを再描画して変更を反映
+	}
+
+	return 0;
+}
+
 //
 //	Function Name: Board
 //	Summary: Constructor for Board object
@@ -1349,7 +1373,7 @@ LPCWSTR Gaming::getWindowTitle()
 {
 	if (state == GAME_STATES::STATE_GAMING || state == GAME_STATES::STATE_GAMING_WAITING_RESP) {
 		static wchar_t buf[128];
-        swprintf(buf, 128, TEXT("Othello %sB: "), getCurrentColor() == DISKCOLORS::COLOR_BLACK ? TEXT("*") : TEXT(" "));
+        swprintf(buf, 128, TEXT("Othello (%sB: "), getCurrentColor() == DISKCOLORS::COLOR_BLACK ? TEXT("*") : TEXT(" "));
 		switch (getPlayerType(ColorToPlayerIndex(DISKCOLORS::COLOR_BLACK))) {
 		case PLAYERTYPE::PLAYERTYPE_USER:
 			swprintf(buf, 128, TEXT("%sYou"), buf);
@@ -1371,17 +1395,17 @@ LPCWSTR Gaming::getWindowTitle()
 		swprintf(buf, 128, TEXT("%s %sW: "), buf, getCurrentColor() == DISKCOLORS::COLOR_WHITE ? TEXT("*") : TEXT(" "));
 		switch (getPlayerType(ColorToPlayerIndex(DISKCOLORS::COLOR_WHITE))) {
 		case PLAYERTYPE::PLAYERTYPE_USER:
-			swprintf(buf, 128, TEXT("%sYou"), buf);
+			swprintf(buf, 128, TEXT("%sYou)"), buf);
 			break;
 		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
-			swprintf(buf, 128, TEXT("%s%s"), buf, TEXT(EMBEDED_THINKER_INFOTEXT));
+			swprintf(buf, 128, TEXT("%s%s)"), buf, TEXT(EMBEDED_THINKER_INFOTEXT));
 			break;
 		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL:
 			char* textInfo;
 			wchar_t wTextInfo[128];
 			externalThinkerHandler[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].getTextInfo(&textInfo);
 			MultiByteToWideChar(CP_UTF8, 0, textInfo, -1, wTextInfo, 128);
-			swprintf(buf, 128, TEXT("%s%s"), buf, wTextInfo);
+			swprintf(buf, 128, TEXT("%s%s)"), buf, wTextInfo);
 			break;
 		default:
 			break;
