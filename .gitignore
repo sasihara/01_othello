@@ -340,3 +340,4 @@ ASALocalRun/
 healthchecksdb
 *.csv
 /othello/history
+/othello/thinkerV3_log.txt

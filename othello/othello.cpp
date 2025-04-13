@@ -1349,47 +1349,45 @@ LPCWSTR Gaming::getWindowTitle()
 {
 	if (state == GAME_STATES::STATE_GAMING || state == GAME_STATES::STATE_GAMING_WAITING_RESP) {
 		static wchar_t buf[128];
-		switch (getCurrentColor()) {
-		case DISKCOLORS::COLOR_BLACK:
-			if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED) {
-				swprintf(buf, 128, TEXT("Othello (Black's turn, %.*s is now thinking...)"), 50, TEXT(EMBEDED_THINKER_INFOTEXT));
-				return (LPCWSTR)buf;
-			}
-			else if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
-				char *textInfo;
-				wchar_t wTextInfo[128];
-				externalThinkerHandler[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].getTextInfo(&textInfo);
-				MultiByteToWideChar(CP_UTF8, 0, textInfo, -1, wTextInfo, 128);
-
-				swprintf(buf, 128, TEXT("Othello (Black's turn, %.*s is now thinking...)"), 50, wTextInfo);
-				return (LPCWSTR)buf;
-			}
-			else {
-				return TEXT("Othello (Black's turn)");
-			}
+        swprintf(buf, 128, TEXT("Othello %sB: "), getCurrentColor() == DISKCOLORS::COLOR_BLACK ? TEXT("*") : TEXT(" "));
+		switch (getPlayerType(ColorToPlayerIndex(DISKCOLORS::COLOR_BLACK))) {
+		case PLAYERTYPE::PLAYERTYPE_USER:
+			swprintf(buf, 128, TEXT("%sYou"), buf);
 			break;
-		case DISKCOLORS::COLOR_WHITE:
-			if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED) {
-				swprintf(buf, 128, TEXT("Othello (White's turn, %.*s is now thinking...)"), 50, TEXT(EMBEDED_THINKER_INFOTEXT));
-				return (LPCWSTR)buf;
-			}
-			else if (getCurrentPlayerType() == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
-				char* textInfo;
-				wchar_t wTextInfo[128];
-				externalThinkerHandler[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].getTextInfo(&textInfo);
-				MultiByteToWideChar(CP_UTF8, 0, textInfo, -1, wTextInfo, 128);
-
-				swprintf(buf, 128, TEXT("Othello (White's turn, %.*s is now thinking...)"), 50, wTextInfo);
-				return (LPCWSTR)buf;
-			}
-			else {
-				return TEXT("Othello (White's turn)");
-			}
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
+			swprintf(buf, 128, TEXT("%s%s"), buf, TEXT(EMBEDED_THINKER_INFOTEXT));
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL:
+			char* textInfo;
+			wchar_t wTextInfo[128];
+			externalThinkerHandler[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].getTextInfo(&textInfo);
+			MultiByteToWideChar(CP_UTF8, 0, textInfo, -1, wTextInfo, 128);
+			swprintf(buf, 128, TEXT("%s%s"), buf, wTextInfo);
 			break;
 		default:
-			return TEXT("Othello");
 			break;
 		}
+
+		swprintf(buf, 128, TEXT("%s %sW: "), buf, getCurrentColor() == DISKCOLORS::COLOR_WHITE ? TEXT("*") : TEXT(" "));
+		switch (getPlayerType(ColorToPlayerIndex(DISKCOLORS::COLOR_WHITE))) {
+		case PLAYERTYPE::PLAYERTYPE_USER:
+			swprintf(buf, 128, TEXT("%sYou"), buf);
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED:
+			swprintf(buf, 128, TEXT("%s%s"), buf, TEXT(EMBEDED_THINKER_INFOTEXT));
+			break;
+		case PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL:
+			char* textInfo;
+			wchar_t wTextInfo[128];
+			externalThinkerHandler[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].getTextInfo(&textInfo);
+			MultiByteToWideChar(CP_UTF8, 0, textInfo, -1, wTextInfo, 128);
+			swprintf(buf, 128, TEXT("%s%s"), buf, wTextInfo);
+			break;
+		default:
+			break;
+		}
+
+		return (LPCWSTR)buf;
 	}
 	else {
 		return TEXT("Othello (Please start to setup by clicking left mouse button or from File menu.)");

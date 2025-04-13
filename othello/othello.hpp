@@ -26,7 +26,7 @@
 #define WSOCK_SELECT						(WM_USER + 3)
 
 // Macros
-#define ColorToPlayerIndex(color)	(int)((color) - 1)
+#define ColorToPlayerIndex(color)	(PLAYERINDEX)((size_t)(color) - 1)
 #define TurnToPlayerIndex(turn)		((turn) % 2)
 
 #define	CURRENTPLAYER(turn)			(DISKCOLORS)(((turn) & 1) + 1)			// turn = even : 1 (COLOR_BLACK), turn = odd : 2 (COLOR_WHITE)
