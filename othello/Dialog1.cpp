@@ -148,7 +148,7 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			// If valid strings are set, check if valid response is received from external thinker or not.
 			else if (gaming.getPlayerType(PLAYERINDEX::PLAYERINDEX_WHITE) == PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL) {
 				// Black is not external thinker, so clear black's external thinker state
-				externalThinkerHandler[(int)PLAYERINDEX::PLAYERINDEX_BLACK].init();
+				externalThinkerHandler[(int)PLAYERINDEX::PLAYERINDEX_BLACK].init(PLAYERINDEX::PLAYERINDEX_BLACK);
 
 				// Fetch the input data for white and send Information Request
 				ret = checkExternalThinker(hDlg, PLAYERINDEX::PLAYERINDEX_WHITE);
@@ -163,8 +163,8 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				dialogState = DIALOG_STATES::STATE_END;
 
 				// Clear External Thinker to remove previous game's state
-				externalThinkerHandler[0].init();
-				externalThinkerHandler[1].init();
+				externalThinkerHandler[0].init(PLAYERINDEX::PLAYERINDEX_BLACK);
+				externalThinkerHandler[1].init(PLAYERINDEX::PLAYERINDEX_WHITE);
 
 				// Start the game
 				StartGame(hDlg);
@@ -222,7 +222,7 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				}
 				else {
 					// White is not external thinker, so clear previous external thinker status for white
-					externalThinkerHandler[(int)PLAYERINDEX::PLAYERINDEX_WHITE].init();
+					externalThinkerHandler[(int)PLAYERINDEX::PLAYERINDEX_WHITE].init(PLAYERINDEX::PLAYERINDEX_WHITE);
 
 					// Start the game
 					StartGame(hDlg);
@@ -365,7 +365,7 @@ int checkExternalThinker(HWND hDlg, PLAYERINDEX playerIndex)
 #endif
 	// Initialize external thinker
 	int ret;
-	ret = externalThinkerHandler[(size_t)playerIndex].init();
+	ret = externalThinkerHandler[(size_t)playerIndex].init(playerIndex);
 	ret = externalThinkerHandler[(size_t)playerIndex].setParam(hostname, port, hDlg);
 
 	TCHAR errorMessage[256];

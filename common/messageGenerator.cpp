@@ -66,7 +66,7 @@ int MessageGenerator::makeMessageHeader(MESSAGETYPE type)
 //		0		Succeed
 //		-1		Work space is not enough
 //
-int MessageGenerator::addTLVID(int id)
+int MessageGenerator::addTLVID(unsigned int id)
 {
 	if (initilized == false) return -1;
 

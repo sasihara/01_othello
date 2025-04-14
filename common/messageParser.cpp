@@ -181,7 +181,7 @@ int MessageParser::getMessageType(MESSAGETYPE *_messageType)
 //		-1		Received message is not set yet.
 //      -2      ID TLV is not stored in the received message
 //
-int MessageParser::getTLVParamsID(int *_id)
+int MessageParser::getTLVParamsID(unsigned int *_id)
 {
     // Availability check
     if (isMessageDataAvailable == false) return -1;

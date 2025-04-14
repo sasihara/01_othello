@@ -29,7 +29,7 @@ private:
 	struct addrinfo hints, *res0, *res;
 	DISKCOLORS board[8][8];
 	int turn;
-	int currentReqId;
+	unsigned int currentReqId;
 	HWND hWnd;
 	UINT_PTR TimerIdWaitThinkAccept;
 	UINT_PTR TimerIdWaitThinkResponse;
@@ -42,9 +42,9 @@ private:
 	char textInfo[64];
 
 public:
-	ExternalThinkerHandler();
+	//ExternalThinkerHandler();
 	~ExternalThinkerHandler();
-	int init();
+	int init(PLAYERINDEX _index);
 	int setParam(char* _hostname, int _port, HWND _hWnd);
 	int setWindowHandle(HWND _hwnd);
 	int sendInformationRequest();

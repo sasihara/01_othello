@@ -22,10 +22,10 @@ extern Gaming gaming;
 //	Return:
 //		None.
 //
-ExternalThinkerHandler::ExternalThinkerHandler()
-{
-	this->init();
-}
+//ExternalThinkerHandler::ExternalThinkerHandler()
+//{
+//	this->init();
+//}
 
 //
 //	Function Name: ~ExternalThinkerHandler
@@ -55,14 +55,14 @@ ExternalThinkerHandler::~ExternalThinkerHandler()
 //		-2:	Failed to create socket. Maybe port is already used.
 //		-3:	Failed in WSAASyncSelect()
 //
-int ExternalThinkerHandler::init()
+int ExternalThinkerHandler::init(PLAYERINDEX _index)
 {
 	// Initialize private variables
 	state = PROTOCOLSTATES::INIT;
 	hostname[0] = NULL;
 	port = 0;
 	sock = -1;
-	currentReqId = 0;
+	currentReqId = (_index == PLAYERINDEX::PLAYERINDEX_BLACK ? 0 : 1);
 	TimerIdWaitThinkAccept = 0;
 
 	memset(board, 0, sizeof(board));
@@ -441,6 +441,9 @@ int ExternalThinkerHandler::receiveMessages()
 				// Cancel the timer
 				KillTimer(hWnd, (INT_PTR)TIMERID::WAIT_THINK_RESPONSE);
 
+				// Increment currentReqId
+				currentReqId++;
+
 				// Transit to INIT state
 				MessageBox(hWnd, TEXT("Rejected by external thinker. Finish this game."), TEXT("Internal Error"), MB_OK | MB_ICONERROR);
 				state = PROTOCOLSTATES::THINKER_AVAILABLE;
@@ -454,7 +457,7 @@ int ExternalThinkerHandler::receiveMessages()
 			switch (state) {
 			case PROTOCOLSTATES::WAITING_THINK_RESP:
 				// Check the ID
-				int respId;
+				unsigned int respId;
 				ret = messageParser.getTLVParamsID(&respId);
 				if (ret < 0) {
 					throw -4;
@@ -462,6 +465,9 @@ int ExternalThinkerHandler::receiveMessages()
 				else if (respId != currentReqId) {
 					throw -5;
 				}
+
+				// Increment currentReqId
+				currentReqId += 2;	// Black uses even value, White uses odd value
 
 				// Get the position
 				int xPos, yPos;

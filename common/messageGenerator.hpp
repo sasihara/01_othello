@@ -9,7 +9,7 @@ class MessageGenerator {
 public:
 	int SetParams(char* sendData, int sendDataMaxSize);
 	int makeMessageHeader(MESSAGETYPE type);
-	int addTLVID(int id);
+	int addTLVID(unsigned int id);
 	int addTLVPlace(unsigned _int8 x, unsigned _int8 y);
 	int addTLVBoard(DISKCOLORS board[64]);
 	int addTLVTURN(int turn);
