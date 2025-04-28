@@ -56,12 +56,12 @@ int Thinker::think()
 	numSpaceLeft = CountDisk(DISKCOLORS::COLOR_NONE, board);
 	LOGOUT(LOGLEVEL_TRACE, "残り石数 = %d.", numSpaceLeft);
 
-	if (numSpaceLeft <= 12) {
+	if (numSpaceLeft <= NUM_FOR_GAMESTATE_END) {
 		depth = INT_MAX;
 		thinkerState = GAMESTATE::GAMESTATE_END;
 		LOGOUT(LOGLEVEL_TRACE, "完全読みモードへ移ります.");
 	}
-	else if (numSpaceLeft <= 48) {
+	else if (numSpaceLeft <= NUM_FOR_GAMESTATE_MIDFIELD) {
 		depth = SEARCH_DEPTH;
 		thinkerState = GAMESTATE::GAMESTATE_MIDFIELD;
 		LOGOUT(LOGLEVEL_TRACE, "中盤モードで進めます.");

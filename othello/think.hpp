@@ -7,8 +7,13 @@
 #define DISKCHARFLAG_CHANGABLE	0x02		// Indicates disk can be changed or not
 
 // Parameters for thinker
-#define SEARCH_DEPTH		6
-#define	FIXED_DISK_WEIGHT	32
+#define SEARCH_DEPTH				6
+#define NUM_FOR_GAMESTATE_END		12
+//#define SEARCH_DEPTH				7
+//#define NUM_FOR_GAMESTATE_END		14
+#define NUM_FOR_GAMESTATE_MIDFIELD	48
+
+#define	FIXED_DISK_WEIGHT			32
 
 enum class GAMESTATE {
 	GAMESTATE_EARLY_STAGE = 0,
