@@ -1,5 +1,6 @@
 #pragma once
 #include "othello.hpp"
+#include "logging.h"
 
 // Bit for disk character
 #define DISKCHARFLAG_EXISTENCE	0x01		// Indicates disk exsits or not
@@ -7,7 +8,7 @@
 
 // Parameters for thinker
 #define SEARCH_DEPTH		6
-#define	FIXED_DISK_WEIGHT	24
+#define	FIXED_DISK_WEIGHT	32
 
 enum class GAMESTATE {
 	GAMESTATE_EARLY_STAGE = 0,
@@ -53,25 +54,25 @@ private:
 	int weight[2][8][8] = {
 		// Weight for Early stage (1 - 16)
 		{
-			 32,-24,  8,  2,  2,  8,-24, 32,
+			 32,-24, 16,  2,  2, 16,-24, 32,
 			-24,-24,-12, -4, -4,-12,-24,-24,
-			  8,-12,  4,  1,  1,  4,-12,  8,
+			 16,-12,  4,  1,  1,  4,-12, 16,
 			  2, -4,  1,  1,  1,  1, -4,  2,
 			  2, -4,  1,  1,  1,  1, -4,  2,
-			  8,-12,  4,  1,  1,  4,-12,  8,
+			 16,-12,  4,  1,  1,  4,-12, 16,
 			-24,-24,-12, -4, -4,-12,-24,-24,
-			 32,-24,  8,  2,  2,  8,-24, 32
+			 32,-24, 16,  2,  2, 16,-24, 32
 		},
 		// Weight for Mid stage (17 - 36)
 		{
-			 32,-24,  8,  2,  2,  8,-24, 32,
-			-24,-24, -8, -4, -4, -8,-24,-24,
-			  8, -8,  1,  1,  1,  1, -8,  8,
-			  2, -4,  1,  4,  4,  1, -4,  2,
-			  2, -4,  1,  4,  4,  1, -4,  2,
-			  8, -8,  1,  1,  1,  1, -8,  8,
-			-24,-24, -8, -4, -4, -8,-24,-24,
-			 32,-24,  8,  2,  2,  8,-24, 32
+			 32,-24, 16,  2,  2, 16,-24, 32,
+			-24,-24,-12, -4, -4,-12,-24,-24,
+			 16,-12,  4,  1,  1,  4,-12, 16,
+			  2, -4,  1,  1,  1,  1, -4,  2,
+			  2, -4,  1,  1,  1,  1, -4,  2,
+			 16,-12,  4,  1,  1,  4,-12, 16,
+			-24,-24,-12, -4, -4,-12,-24,-24,
+			 32,-24, 16,  2,  2, 16,-24, 32
 		}
 	};
 	
@@ -87,5 +88,7 @@ private:
 	int checkOneDir(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep);
 	int turnDisk(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int flag);
 	int turnDiskOneDir(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep);
-
 };
+
+int logoutBoard(Logging logging, DISKCOLORS* _board);
+int logoutAnalysisResult(Logging logging, int* _result);

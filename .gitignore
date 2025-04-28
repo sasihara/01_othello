@@ -341,3 +341,4 @@ healthchecksdb
 *.csv
 /othello/history
 /othello/thinkerV3_log.txt
+/othello/othello_log.txt

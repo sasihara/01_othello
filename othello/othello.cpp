@@ -64,7 +64,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	// Logging
 #ifdef _DEBUG
-	LOGOUT_INIT(LOGLEVEL_ALL, "thinkerV3_log.txt");
+	LOGOUT_INIT(LOGLEVEL_ALL, "othello_log.txt");
 #else
 	LOGOUT_INIT(LOGLEVEL_WARNING, "othello_log.txt");
 #endif

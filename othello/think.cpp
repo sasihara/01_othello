@@ -8,6 +8,8 @@
 #include "externalThinkerMessages.hpp"
 #include "think.hpp"
 
+extern Logging logging;
+
 //
 //	Function Name: SetParams
 //	Summary: Set parameters for thinker.
@@ -42,20 +44,32 @@ int Thinker::think()
 	int ret;
 	int numSpaceLeft;
 
+	LOGOUT(LOGLEVEL_TRACE, "★==================== think() start. ====================★");
+
+#ifdef _DEBUG
+	logging.logprintf("*** 現在の盤面 ***\n");
+	logging.logprintf("プレイヤーの石の色: %s\n", currentPlayer == DISKCOLORS::COLOR_BLACK ? "●" : currentPlayer == DISKCOLORS::COLOR_WHITE ? "○" : "");
+	ret = logoutBoard(logging, board);
+#endif
+
 	// Decide thinking mode.
 	numSpaceLeft = CountDisk(DISKCOLORS::COLOR_NONE, board);
+	LOGOUT(LOGLEVEL_TRACE, "残り石数 = %d.", numSpaceLeft);
 
 	if (numSpaceLeft <= 12) {
 		depth = INT_MAX;
 		thinkerState = GAMESTATE::GAMESTATE_END;
+		LOGOUT(LOGLEVEL_TRACE, "完全読みモードへ移ります.");
 	}
-	if (numSpaceLeft <= 48) {
+	else if (numSpaceLeft <= 48) {
 		depth = SEARCH_DEPTH;
 		thinkerState = GAMESTATE::GAMESTATE_MIDFIELD;
+		LOGOUT(LOGLEVEL_TRACE, "中盤モードで進めます.");
 	}
 	else {
 		depth = SEARCH_DEPTH;
 		thinkerState = GAMESTATE::GAMESTATE_EARLY_STAGE;
+		LOGOUT(LOGLEVEL_TRACE, "序盤モードで進めます.");
 	}
 
 	// Player detection
@@ -65,6 +79,7 @@ int Thinker::think()
 	// Start to think.
 	ret = findBestPlaceForCurrentPlayer(depth);
 
+	LOGOUT(LOGLEVEL_TRACE, "★==================== think() end. ====================★");
 	return ret;
 }
 
@@ -209,18 +224,40 @@ int Thinker::MinLevel(int lv, bool f, int alpha, DISKCOLORS _board[64])
 //
 int Thinker::evcal(DISKCOLORS board[64])
 {
-	int i, c = 0;
+	size_t i;
+	int c = 0;
 	int result[64];
+	int ret;
+
+	LOGOUT(LOGLEVEL_TRACE, "evcal() start.");
+
+#ifdef _DEBUG
+	logging.logprintf("プレイヤーの石の色: %s\n", currentPlayer == DISKCOLORS::COLOR_BLACK ? "●" : currentPlayer == DISKCOLORS::COLOR_WHITE ? "○" : "");
+	ret = logoutBoard(logging, board);
+#endif
 
 	if (thinkerState == GAMESTATE::GAMESTATE_END) {
-		for (i = 0; i < 60; i++) {
-			if (board[CheckPosX[i] * 8 + CheckPosY[i]] == currentPlayer) c++;
-			else if (board[CheckPosX[i] * 8 + CheckPosY[i]] == opponent) c--;
+		//for (i = 0; i < 60; i++) {
+		//	if (board[CheckPosX[i] * 8 + CheckPosY[i]] == currentPlayer) c++;
+		//	else if (board[CheckPosX[i] * 8 + CheckPosY[i]] == opponent) c--;
+		//}
+		for (i = 0; i < 64; i++) {
+			if (board[i] == currentPlayer) c++;
+			else if (board[i] == opponent) c--;
 		}
+
+		LOGOUT(LOGLEVEL_TRACE, "完全読みモードでの評価値 = %d", c);
+		LOGOUT(LOGLEVEL_TRACE, "evcal() end.");
+
 		return c;
 	}
 	else {
 		analyzeDiskCharacter(board, result);
+#ifdef _DEBUG
+		logging.logprintf("***** 分析結果 *****\n");
+		logoutAnalysisResult(logging, result);
+#endif
+
 		for (i = 0; i < 64; i++) {
 			if (board[i] == currentPlayer) {
 				if ((result[i] & (DISKCHARFLAG_EXISTENCE | DISKCHARFLAG_CHANGABLE)) == DISKCHARFLAG_EXISTENCE)
@@ -233,6 +270,10 @@ int Thinker::evcal(DISKCOLORS board[64])
 				else c -= weight[(int)thinkerState][i / 8][i % 8];
 			}
 		}
+
+		LOGOUT(LOGLEVEL_TRACE, "序盤：中盤モードでの評価値 = %d", c);
+		LOGOUT(LOGLEVEL_TRACE, "evcal() end.");
+
 		return c;
 	}
 }
@@ -579,4 +620,48 @@ bool Thinker::isPatternToFix(int code)
 	}
 
 	return false;
+}
+
+int logoutBoard(Logging logging, DISKCOLORS* _board)
+{
+	for (int y = 0; y < 8; y++) {
+		for (int x = 0; x < 8; x++) {
+			switch (_board[x * 8 + y]) {
+			case DISKCOLORS::COLOR_BLACK:
+				logging.logprintf(LOGLEVEL_TRACE, "●");
+				break;
+			case DISKCOLORS::COLOR_WHITE:
+				logging.logprintf(LOGLEVEL_TRACE, "○");
+				break;
+			default:
+				logging.logprintf(LOGLEVEL_TRACE, "・");
+				break;
+			}
+		}
+		logging.logprintf(LOGLEVEL_TRACE, "\n");
+	}
+
+	return 0;
+}
+
+int logoutAnalysisResult(Logging logging, int *_result)
+{
+	for (int y = 0; y < 8; y++) {
+		for (int x = 0; x < 8; x++) {
+			switch (_result[x * 8 + y] & (DISKCHARFLAG_EXISTENCE | DISKCHARFLAG_CHANGABLE)) {
+			case DISKCHARFLAG_EXISTENCE:
+				logging.logprintf(LOGLEVEL_TRACE, "◎");
+				break;
+			case DISKCHARFLAG_EXISTENCE | DISKCHARFLAG_CHANGABLE:
+				logging.logprintf(LOGLEVEL_TRACE, "○");
+				break;
+			default:
+				logging.logprintf(LOGLEVEL_TRACE, "・");
+				break;
+			}
+		}
+		logging.logprintf(LOGLEVEL_TRACE, "\n");
+	}
+
+	return 0;
 }
