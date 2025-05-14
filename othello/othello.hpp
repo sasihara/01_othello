@@ -18,7 +18,7 @@
 
 #define RESULT_FILENAME	"gameResults.csv"
 
-#define	EMBEDED_THINKER_INFOTEXT	"Othello Thinker V1.01(Min-Max Based)"
+#define	EMBEDED_THINKER_INFOTEXT	"Othello Thinker V1.02(Min-Max Based)"
 
 // Messages
 #define	WM_USER_TRIGGER_THINKER				(WM_USER + 1)
