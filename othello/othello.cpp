@@ -123,13 +123,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hInst = hInstance; // Store instance handle in our global variable
 
    HWND hWnd = CreateWindowW(szWindowClass, TEXT("Othello (Please configure game conditions)"), WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX,
-      CW_USEDEFAULT, 0, 800, 800, nullptr, nullptr, hInstance, nullptr);
+      CW_USEDEFAULT, 0, WINDEFSIZE_WIDTH, WINDEFSIZE_HEIGHT, nullptr, nullptr, hInstance, nullptr);
+   //HWND hWnd = CreateWindowW(szWindowClass, TEXT("Othello (Please configure game conditions)"), WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_SIZEBOX,
+	  // CW_USEDEFAULT, 0, WINDEFSIZE_WIDTH, WINDEFSIZE_HEIGHT, nullptr, nullptr, hInstance, nullptr);
 
    // Adjust window size
    RECT rc1, rc2;
    GetWindowRect(hWnd, &rc1);
    GetClientRect(hWnd, &rc2);
-   SetWindowPos(hWnd, NULL, 0, 0, 800 + ((rc1.right - rc1.left) - (rc2.right - rc2.left)), 800 + ((rc1.bottom - rc1.top) - (rc2.bottom - rc2.top)), (SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE));
+   SetWindowPos(hWnd, NULL, 0, 0, WINDEFSIZE_WIDTH + ((rc1.right - rc1.left) - (rc2.right - rc2.left)), WINDEFSIZE_HEIGHT + ((rc1.bottom - rc1.top) - (rc2.bottom - rc2.top)), (SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE));
 
    if (!hWnd)
    {
@@ -202,6 +204,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	}
+	case WM_SIZE:
+		InvalidateRect(hWnd, NULL, TRUE);
+		break;
 	case WM_PAINT:
     {
 		display.DrawBoard(gaming.getWindowTitle());
@@ -710,11 +715,18 @@ int Display::DrawBoard(LPCWSTR windowTitle)
 {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
+
+	// Get Client Size
+	RECT rc;
+	GetClientRect(hWnd, &rc);
+	int winSizeWidth, winSizeHeight;
+	winSizeWidth = winSizeHeight = min((rc.right - rc.left), (rc.bottom - rc.top));
+
 	// TODO: Add any drawing code that uses hdc here...
 	// Draw background.
-	RECT rc;
 	rc.left = rc.top = 0;
-	rc.right = rc.bottom = 800;
+	rc.right = winSizeWidth;
+	rc.bottom = winSizeHeight;
 	HBRUSH hbr = CreateSolidBrush(RGB(0, 128, 0));
 	FillRect(hdc, &rc, hbr);
 	DeleteObject(hbr);
@@ -723,11 +735,11 @@ int Display::DrawBoard(LPCWSTR windowTitle)
 	int i, j;
 	HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
-	for (i = 100; i < 800; i += 100) {
+	for (i = winSizeWidth / 8; i < winSizeWidth; i += winSizeWidth / 8) {
 		MoveToEx(hdc, 0, i, NULL);
-		LineTo(hdc, 800, i);
+		LineTo(hdc, winSizeWidth, i);
 		MoveToEx(hdc, i, 0, NULL);
-		LineTo(hdc, i, 800);
+		LineTo(hdc, i, winSizeHeight);
 	}
 	SelectObject(hdc, hOldPen);
 	DeleteObject(hPen);
@@ -737,10 +749,13 @@ int Display::DrawBoard(LPCWSTR windowTitle)
 	hbr = (HBRUSH)CreateSolidBrush(RGB(0, 0, 0));
 	HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hbr);
 
-	Ellipse(hdc, 195, 195, 205, 205);
-	Ellipse(hdc, 595, 595, 605, 605);
-	Ellipse(hdc, 195, 595, 205, 605);
-	Ellipse(hdc, 595, 195, 605, 205);
+	int radius = winSizeWidth / 160;
+	int gridWidth = winSizeWidth / 8;
+	int gridHeight = winSizeHeight / 8;
+	Ellipse(hdc, gridWidth * 2 - radius, gridHeight * 2 - radius, gridWidth * 2 + radius, gridHeight * 2 + radius);
+	Ellipse(hdc, gridWidth * 6 - radius, gridHeight * 6 - radius, gridWidth * 6 + radius, gridHeight * 6 + radius);
+	Ellipse(hdc, gridWidth * 2 - radius, gridHeight * 6 - radius, gridWidth * 2 + radius, gridHeight * 6 + radius);
+	Ellipse(hdc, gridWidth * 6 - radius, gridHeight * 2 - radius, gridWidth * 6 + radius, gridHeight * 2 + radius);
 
 	SelectObject(hdc, hOldPen);
 	SelectObject(hdc, hOldBrush);
@@ -749,19 +764,19 @@ int Display::DrawBoard(LPCWSTR windowTitle)
 	// Draw disks
 	for (i = 0; i < 8; i++) {
 		for (j = 0; j < 8; j++) {
-			int cx = i * 100 + 50;
-			int cy = j * 100 + 50;
+			int cx = i * gridWidth + gridWidth / 2;
+			int cy = j * gridHeight + gridHeight / 2;
 
 			switch (board.GetDisk(i, j)) {
 			case DISKCOLORS::COLOR_BLACK:
 				hbr = (HBRUSH)CreateSolidBrush(RGB(0, 0, 0));
 				hOldBrush = (HBRUSH)SelectObject(hdc, hbr);
-				Ellipse(hdc, cx - 40, cy - 40, cx + 40, cy + 40);
+				Ellipse(hdc, cx - gridWidth * 0.4, cy - gridHeight * 0.4, cx + gridWidth * 0.4, cy + gridHeight * 0.4);
 				break;
 			case DISKCOLORS::COLOR_WHITE:
 				hbr = (HBRUSH)CreateSolidBrush(RGB(255, 255, 255));
 				hOldBrush = (HBRUSH)SelectObject(hdc, hbr);
-				Ellipse(hdc, cx - 40, cy - 40, cx + 40, cy + 40);
+				Ellipse(hdc, cx - gridWidth * 0.4, cy - gridHeight * 0.4, cx + gridWidth * 0.4, cy + gridHeight * 0.4);
 				break;
 			default:
 				break;

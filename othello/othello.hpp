@@ -10,6 +10,9 @@
 #include "resource.h"
 
 // Constant
+#define	WINDEFSIZE_WIDTH			600
+#define WINDEFSIZE_HEIGHT			600
+
 #define WAIT_TIME_INFO_RESP			5
 #define WAIT_TIME_THINK_ACCEPT		5
 #define WAIT_TIME_THINK_RESPONSE		30
