@@ -248,11 +248,19 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				MessageBox(hWnd, TEXT("Thinker passes!!"), TEXT("Message from thinker"), MB_OK);
 			}
 			gaming.Pass();
+
+			// Transit state
+			gaming.setState(GAME_STATES::STATE_GAMING_WAITING_RESP);
+
+			// Switch to next player
+			switchToNextPlayer(hWnd);
 		}
 		else {
 			// Start thinker thread
 			param.hwnd = hWnd;
 			hThread1 = CreateThread(NULL, 0, runThinker, &param, 0, &dwThreadId);
+
+			// Transit state
 			gaming.setState(GAME_STATES::STATE_GAMING_WAITING_RESP);
 		}
 		break;
@@ -261,6 +269,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 		switch (gaming.getGameState()) {
 			case GAME_STATES::STATE_GAMING_WAITING_RESP:
+				// Transit state
 				gaming.setState(GAME_STATES::STATE_GAMING);
 
 				ret = wParam;
