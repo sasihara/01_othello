@@ -27,6 +27,7 @@
 #define	WM_USER_TRIGGER_THINKER				(WM_USER + 1)
 #define	WM_USER_TRIGGER_EXTERNAL_THINKER	(WM_USER + 2)
 #define WSOCK_SELECT						(WM_USER + 3)
+#define WM_USER_TRIGGER_THINKER_FINISHED	(WM_USER + 4)
 
 // Macros
 #define ColorToPlayerIndex(color)	(PLAYERINDEX)((size_t)(color) - 1)
@@ -97,6 +98,11 @@ typedef struct _GAMEID {
 		else return true;
 	}
 } GameId;
+
+// Thread parameter
+typedef struct THREADPARAM {
+	HWND hwnd;
+} ThreadParam;
 
 // Class
 class Display {
@@ -171,3 +177,4 @@ int storeGameResult(char* blackName, char* whiteName, DISKCOLORS winner, int num
 void switchToNextPlayer(HWND hWnd);
 int checkExternalThinker(HWND hDlg, PLAYERINDEX playerIndex);
 void StartGame(HWND hDlg);
+DWORD WINAPI runThinker(LPVOID lpParameter);

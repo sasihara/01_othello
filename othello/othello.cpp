@@ -161,6 +161,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int ret;
 	static int numTransmissionThinkRequest = 0;
+	static ThreadParam param;
+	DWORD dwThreadId;
+	HANDLE hThread1;
 
     switch (message)
     {
@@ -239,9 +242,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_USER_TRIGGER_THINKER:
 	{
-		Thinker thinker;
-		DISKCOLORS workBoard[64];
-
 		// If player must pass, skip calling thiner and switch to next player
 		if (gaming.IsPlayerMustPass() == true) {
 			if (gaming.getOpponentPlayerType() == PLAYERTYPE::PLAYERTYPE_USER) {
@@ -249,37 +249,49 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			gaming.Pass();
 		}
-		else{
-			// Get current board from Board object.
-			board.CopyBoard(workBoard);
+		else {
+			// Start thinker thread
+			param.hwnd = hWnd;
+			hThread1 = CreateThread(NULL, 0, runThinker, &param, 0, &dwThreadId);
+			gaming.setState(GAME_STATES::STATE_GAMING_WAITING_RESP);
+		}
+		break;
+	}
+	case WM_USER_TRIGGER_THINKER_FINISHED:
+	{
+		switch (gaming.getGameState()) {
+			case GAME_STATES::STATE_GAMING_WAITING_RESP:
+				gaming.setState(GAME_STATES::STATE_GAMING);
 
-			// Set parameters and then call thinker.
-			ret = thinker.SetParams(gaming.getTurn(), workBoard);
-			ret = thinker.think();
+				ret = wParam;
 
-			// Check if thinker passes or not.
-			if (ret >= 0) {
-				int xPos = ret / 10;
-				int yPos = ret % 10;
+				// Check if thinker passes or not.
+				if (ret >= 0) {
+					int xPos = ret / 10;
+					int yPos = ret % 10;
 
-				// Update board.
-				gaming.PutDisk(xPos, yPos);
-			}
-			else {
-				// If the player is not allowed to pass, initialize the game.
-				MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
-				gaming.InitGame();
+					// Update board.
+					gaming.PutDisk(xPos, yPos);
+				}
+				else {
+					// If the player is not allowed to pass, initialize the game.
+					MessageBox(hWnd, TEXT("Thinker error. Retart the game."), TEXT("Error"), MB_ICONWARNING | MB_OK);
+					gaming.InitGame();
+					break;
+				}
+
+				// Remove all key and mouse events during thinking
+				MSG bufferdMessages;
+				while (PeekMessage(&bufferdMessages, hWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
+				while (PeekMessage(&bufferdMessages, hWnd, WM_MOUSEFIRST, WM_MOUSELAST, PM_REMOVE));
+
+				// Check gameover and trigger thinker if necessary.
+				switchToNextPlayer(hWnd);
 				break;
-			}
-
-			// Remove all key and mouse events during thinking
-			MSG bufferdMessages;
-			while (PeekMessage(&bufferdMessages, hWnd, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE));
-			while (PeekMessage(&bufferdMessages, hWnd, WM_MOUSEFIRST, WM_MOUSELAST, PM_REMOVE));
+			default:
+				break;
 		}
 
-		// Check gameover and trigger thinker if necessary.
-		switchToNextPlayer(hWnd);
 		break;
 	}
 	case WM_USER_TRIGGER_EXTERNAL_THINKER:
@@ -1531,6 +1543,25 @@ int Gaming::getWinner(DISKCOLORS* winner, int *_numBlack, int *_numWhite)
 
 	*_numBlack = numBlack;
 	*_numWhite = numWhite;
+
+	return 0;
+}
+
+DWORD WINAPI runThinker(LPVOID lpParameter)
+{
+	Thinker thinker;
+	DISKCOLORS workBoard[64];
+	int ret;
+
+	// Get current board from Board object.
+	board.CopyBoard(workBoard);
+
+	// Set parameters and then call thinker.
+	ret = thinker.SetParams(gaming.getTurn(), workBoard);
+	ret = thinker.think();
+
+	// メッセージを送信
+	PostMessage(((ThreadParam*)lpParameter)->hwnd, WM_USER_TRIGGER_THINKER_FINISHED, ret, 0);
 
 	return 0;
 }
