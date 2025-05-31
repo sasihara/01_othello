@@ -137,6 +137,8 @@ private:
 
 public:
 	bool autoRepeat = false;
+	int numRepeat = 0;
+	bool bLimitedRepeating = false;
 	PLAYERINFO	playerInfo[2];
 
 	Gaming();

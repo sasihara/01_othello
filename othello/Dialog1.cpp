@@ -70,12 +70,24 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SetWindowText(GetDlgItem(hDlg, IDC_EDIT3), gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sHostname);
 		SetWindowText(GetDlgItem(hDlg, IDC_EDIT4), gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sPort);
 
+		WCHAR sNumRepeat[16];
+		_itow_s(gaming.numRepeat, sNumRepeat, _countof(sNumRepeat), 10);
+		SetWindowText(GetDlgItem(hDlg, IDC_EDIT5), sNumRepeat);
+
 		// Set auto repeat checkbox
 		if (gaming.autoRepeat == true) {
 			SendMessage(GetDlgItem(hDlg, IDC_CHECK1), BM_SETCHECK, BST_CHECKED, 0);
 		}
 		else {
 			SendMessage(GetDlgItem(hDlg, IDC_CHECK1), BM_SETCHECK, BST_UNCHECKED, 0);
+		}
+
+		// Set limited repeat
+		if (gaming.bLimitedRepeating == true) {
+			SendMessage(GetDlgItem(hDlg, IDC_CHECK3), BM_SETCHECK, BST_CHECKED, 0);
+		}
+		else {
+			SendMessage(GetDlgItem(hDlg, IDC_CHECK3), BM_SETCHECK, BST_UNCHECKED, 0);
 		}
 
 		// Set timer for waiting the response
@@ -129,6 +141,18 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			else {
 				gaming.autoRepeat = false;
 			}
+
+			// Get limited repeating
+			if (SendMessage(GetDlgItem(hDlg, IDC_CHECK3), BM_GETCHECK, 0, 0) == BST_CHECKED) {
+				gaming.bLimitedRepeating = true;
+			}
+			else {
+				gaming.bLimitedRepeating = false;
+			}
+
+			WCHAR sNumRepeat[16];
+			GetDlgItemText(hDlg, IDC_EDIT5, (TCHAR*)sNumRepeat, _countof(sNumRepeat));
+			gaming.numRepeat = _wtoi(sNumRepeat);
 
 			// Update auto repeat check on menu
 			display.setAutoRepeatOnMenu(gaming.autoRepeat);
@@ -437,5 +461,11 @@ void StartGame(HWND hDlg)
 		gaming.setState(GAME_STATES::STATE_GAMING_WAITING_RESP);
 		PostMessage(GetWindow(hDlg, GW_OWNER), WM_USER_TRIGGER_EXTERNAL_THINKER, 0, 0);
 		break;
+	}
+
+	// Decrement num of games
+	if (gaming.autoRepeat == true && gaming.bLimitedRepeating == true) {
+		gaming.numRepeat--;
+		if (gaming.numRepeat <= 0) gaming.autoRepeat = false;
 	}
 }

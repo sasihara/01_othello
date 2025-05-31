@@ -26,6 +26,8 @@
 #define IDC_EDIT4                       1011
 #define IDC_CHECK1                      1012
 #define IDC_CHECK2                      1013
+#define IDC_CHECK3                      1014
+#define IDC_EDIT5                       1015
 #define ID_FILE_NEWGAME                 32771
 #define ID_PASS                         32772
 #define ID_SETTING_REPEAT               32773

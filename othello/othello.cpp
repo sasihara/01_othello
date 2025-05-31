@@ -620,7 +620,8 @@ void switchToNextPlayer(HWND hWnd)
 		display.UpdateBoard(false);
 
 		// Open Dialog if auto repeat is enabled
-		if (gaming.autoRepeat == true) {
+		if ((gaming.bLimitedRepeating == false && gaming.autoRepeat == true) ||
+			(gaming.bLimitedRepeating == true && gaming.numRepeat > 0 && gaming.autoRepeat == true)) {
 			// Exchange white and black
 			PLAYERINFO tmpPlayerInfo;
 			memmove_s(&tmpPlayerInfo, sizeof(PLAYERINFO), &gaming.playerInfo[0], sizeof(PLAYERINFO));
