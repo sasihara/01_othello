@@ -223,8 +223,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		// If left mouse button pushed, check the game state.
 		if (gaming.getGameState() == GAME_STATES::STATE_GAMING) {
 			// If game is already started, get the clicked position on the board.
-			int xPos = (lParam & 0xFFFF) / 100;
-			int yPos = ((lParam >> 16) & 0xFFFF) / 100;
+			int xPos = (lParam & 0xFFFF) / display.getGridWidth();
+			int yPos = ((lParam >> 16) & 0xFFFF) / display.getGridHeight();
 
 			// Update board.
 			if ((ret = gaming.PutDisk(xPos, yPos)) < 0) break;
@@ -265,7 +265,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	}
-	case WM_USER_TRIGGER_THINKER_FINISHED:
+	case WM_USER_THINK_FINISHED:
 	{
 		switch (gaming.getGameState()) {
 			case GAME_STATES::STATE_GAMING_WAITING_RESP:
@@ -737,12 +737,10 @@ int Display::DrawBoard(LPCWSTR windowTitle)
 {
 	PAINTSTRUCT ps;
 	HDC hdc = BeginPaint(hWnd, &ps);
-
-	// Get Client Size
 	RECT rc;
-	GetClientRect(hWnd, &rc);
-	int winSizeWidth, winSizeHeight;
-	winSizeWidth = winSizeHeight = min((rc.right - rc.left), (rc.bottom - rc.top));
+
+	// Update Size
+	updateWinSize();
 
 	// TODO: Add any drawing code that uses hdc here...
 	// Draw background.
@@ -757,7 +755,7 @@ int Display::DrawBoard(LPCWSTR windowTitle)
 	int i, j;
 	HPEN hPen = CreatePen(PS_SOLID, 1, RGB(0, 0, 0));
 	HPEN hOldPen = (HPEN)SelectObject(hdc, hPen);
-	for (i = winSizeWidth / 8; i < winSizeWidth; i += winSizeWidth / 8) {
+	for (i = gridWidth; i < winSizeWidth; i += gridWidth) {
 		MoveToEx(hdc, 0, i, NULL);
 		LineTo(hdc, winSizeWidth, i);
 		MoveToEx(hdc, i, 0, NULL);
@@ -772,8 +770,6 @@ int Display::DrawBoard(LPCWSTR windowTitle)
 	HBRUSH hOldBrush = (HBRUSH)SelectObject(hdc, hbr);
 
 	int radius = winSizeWidth / 160;
-	int gridWidth = winSizeWidth / 8;
-	int gridHeight = winSizeHeight / 8;
 	Ellipse(hdc, gridWidth * 2 - radius, gridHeight * 2 - radius, gridWidth * 2 + radius, gridHeight * 2 + radius);
 	Ellipse(hdc, gridWidth * 6 - radius, gridHeight * 6 - radius, gridWidth * 6 + radius, gridHeight * 6 + radius);
 	Ellipse(hdc, gridWidth * 2 - radius, gridHeight * 6 - radius, gridWidth * 2 + radius, gridHeight * 6 + radius);
@@ -1089,11 +1085,11 @@ int Gaming::PutDisk(int x, int y)
 	int ret;
 
 	// Check if specified position is on the board or not
-	if (x == 8 && y == 0) {
+	if (x > 7 || y > 7) {
 		// Pass
 		return 1;
 	}
-	else if (x < 0 || x > 7 || y < 0 || y > 7) return -1;
+	else if (x < 0 || y < 0) return -1;
 
 	// Check if specified position can be put for the disk
 	if ((dirFlag = check(x, y, getCurrentColor())) == 0) {
@@ -1570,7 +1566,7 @@ DWORD WINAPI runThinker(LPVOID lpParameter)
 	ret = thinker.think();
 
 	// メッセージを送信
-	PostMessage(((ThreadParam*)lpParameter)->hwnd, WM_USER_TRIGGER_THINKER_FINISHED, ret, 0);
+	PostMessage(((ThreadParam*)lpParameter)->hwnd, WM_USER_THINK_FINISHED, ret, 0);
 
 	return 0;
 }

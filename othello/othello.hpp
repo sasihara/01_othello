@@ -27,7 +27,7 @@
 #define	WM_USER_TRIGGER_THINKER				(WM_USER + 1)
 #define	WM_USER_TRIGGER_EXTERNAL_THINKER	(WM_USER + 2)
 #define WSOCK_SELECT						(WM_USER + 3)
-#define WM_USER_TRIGGER_THINKER_FINISHED	(WM_USER + 4)
+#define WM_USER_THINK_FINISHED	(WM_USER + 4)
 
 // Macros
 #define ColorToPlayerIndex(color)	(PLAYERINDEX)((size_t)(color) - 1)
@@ -110,11 +110,32 @@ private:
 	HWND hWnd;
 	HMENU hMenu;
 	MENUITEMINFO menuInfo;
+	int winSizeWidth, winSizeHeight, gridWidth, gridHeight;
 public:
 	int SetParams(HWND hWnd);
 	int UpdateBoard(bool playerMustPass = false);
 	int DrawBoard(LPCWSTR windowTitle);
 	int setAutoRepeatOnMenu(bool autoRepeat);
+	int updateWinSize() {
+		RECT rc;
+		GetClientRect(hWnd, &rc);
+		winSizeWidth = winSizeHeight = min((rc.right - rc.left), (rc.bottom - rc.top));
+		gridWidth = winSizeWidth / 8;
+		gridHeight = winSizeHeight / 8;
+		return 0;
+	};
+	int getWinSizeWidth() {
+		return winSizeWidth;
+	};
+	int getWinSizeHeight() {
+		return winSizeHeight;
+	};
+	int getGridWidth() {
+		return gridWidth;
+	};
+	int getGridHeight() {
+		return gridHeight;
+	};
 };
 
 class Board {
