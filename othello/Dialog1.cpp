@@ -91,7 +91,7 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 
 		// Set timer for waiting the response
-		if (gaming.autoRepeat == true) {
+		if (gaming.autoRepeat == true || gaming.autoStart == true) {
 			UINT_PTR TimerIdWaitDisablingAutoRepeat;
 			TimerIdWaitDisablingAutoRepeat = SetTimer(hDlg, (INT_PTR)TIMERID::WAIT_DISABLING_AUTOREPEAT, WAIT_TIME_DISABLING_AUTOREPEAT * 1000, NULL);
 		}
@@ -330,7 +330,7 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			KillTimer(hDlg, (INT_PTR)TIMERID::WAIT_DISABLING_AUTOREPEAT);
 
 			// Get auto repeat checkbox
-			if (SendMessage(GetDlgItem(hDlg, IDC_CHECK1), BM_GETCHECK, 0, 0) == BST_CHECKED) {
+			if (SendMessage(GetDlgItem(hDlg, IDC_CHECK1), BM_GETCHECK, 0, 0) == BST_CHECKED || gaming.autoStart == true) {
 				// Push "OK" button automatically
 				PostMessage(hDlg, WM_COMMAND, IDOK, 0);
 				gaming.autoRepeat = true;

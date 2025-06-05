@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <process.h>
+#include <shellapi.h>
 #include "logging.h"
 #include "history.hpp"
 
@@ -46,6 +47,132 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // TODO: Place code here.
+	int argc;
+	LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+
+	int state = 0;	// 0: Not specified, 1: Black specified, 2: White specified, 3: Black & White specified
+	int pIndex;
+	for (size_t i = 1; i < argc; i++) {
+		switch (argv[i][0]) {
+		case '-':
+		case '/':
+			switch (argv[i][1]) {
+			case 'B':
+			case 'W':
+				if (argv[i][1] == 'B') pIndex = 0;
+				else pIndex = 1;
+
+				switch (argv[i][2]) {
+				case 'u':
+					gaming.playerInfo[pIndex].PlayerType = PLAYERTYPE::PLAYERTYPE_USER;
+
+					// state transition
+					switch (state) {
+					case 0:
+						if (pIndex == 0) state = 1;
+						else state = 2;
+						break;
+					case 1:
+						if (pIndex == 1) state = 3;
+						break;
+					case 2:
+						if (pIndex == 0) state = 3;
+						break;
+					default:
+						break;
+					}
+					break;
+				case 'm':
+					gaming.playerInfo[pIndex].PlayerType = PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED;
+
+					// state transition
+					switch (state) {
+					case 0:
+						if (pIndex == 0) state = 1;
+						else state = 2;
+						break;
+
+					case 1:
+						if (pIndex == 1) state = 3;
+						break;
+					case 2:
+						if (pIndex == 0) state = 3;
+						break;
+					default:
+						break;
+					}
+					break;
+				case 'x': {
+					// Get hostname and port number
+					WCHAR hostname[256];
+					WCHAR port[6];
+					int subState = 0;	// 0: hostname is set, 1: hostname & port is set
+					size_t index = 0;
+					for (size_t j = 3; argv[i][j] != NULL; j++) {
+						if (argv[i][j] == ':') {
+							hostname[index] = NULL;
+							subState = 1;
+							index = 0;
+						}
+						else if (subState == 0) {
+							hostname[index] = argv[i][j];
+							index++;
+							if (index >= _countof(hostname) - 1) break;
+						}
+						else if (subState == 1) {
+							port[index] = argv[i][j];
+							index++;
+							if (index >= _countof(port) - 1) break;
+						}
+					}
+
+					if (subState == 0) hostname[index] = NULL;
+					else if (subState == 1) port[index] = NULL;
+
+					if (subState == 1) {
+						gaming.playerInfo[pIndex].PlayerType = PLAYERTYPE::PLAYERTYPE_COMPUTER_EXTERNAL;
+						wcscpy_s(gaming.playerInfo[pIndex].sHostname, _countof(gaming.playerInfo[pIndex].sHostname), hostname);
+						wcscpy_s(gaming.playerInfo[pIndex].sPort, _countof(gaming.playerInfo[pIndex].sPort), port);
+
+						// state transition
+						switch (state) {
+						case 0:
+							if (pIndex == 0) state = 1;
+							else state = 2;
+							break;
+						case 1:
+							if (pIndex == 1) state = 3;
+							break;
+						case 2:
+							if (pIndex == 0) state = 3;
+							break;
+						default:
+							break;
+						}
+					}
+					break;
+				}
+				default:
+					break;
+				}
+				break;
+			case 'R':
+				int numRepeat = 0;
+				gaming.autoRepeat = true;
+				numRepeat = _wtoi(&argv[i][2]);
+				if (numRepeat > 0) {
+					gaming.bLimitedRepeating = true;
+					gaming.numRepeat = numRepeat;
+				}
+				break;
+			defaut:
+				break;
+			}
+		}
+	}
+
+	// If players are set both black and white in command line, autoStart is set to true
+	if (state == 3) gaming.autoStart = true;
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -167,6 +294,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     switch (message)
     {
+	case WM_CREATE:
+		if (gaming.autoStart == true) {
+			PostMessage(hWnd, WM_COMMAND, ID_FILE_NEWGAME, 0);
+		}
+		break;
     case WM_COMMAND:
 	{
 		int wmId = LOWORD(wParam);
@@ -627,7 +759,7 @@ void switchToNextPlayer(HWND hWnd)
 		}
 
 		// Display Gameover
-		if (gaming.autoRepeat == false) {
+		if (gaming.autoRepeat == false && gaming.autoStart == false) {
 			displayGameOver(hWnd, winner);
 		}
 		else {
