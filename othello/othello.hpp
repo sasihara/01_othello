@@ -161,12 +161,15 @@ private:
 		return CURRENTPLAYER(turn);
 	};
 	GameId gameid;
+	int numGames = 0, numDraw = 0, numWin[2] = { 0, 0 };
+	size_t playerIndexConvTable[2] = {0, 1};
 
 public:
 	bool autoRepeat = false;
 	int numRepeat = 0;
 	bool bLimitedRepeating = false;
 	bool autoStart = false;
+	DISKCOLORS colorToReport = DISKCOLORS::COLOR_BLACK;
 	PLAYERINFO	playerInfo[2];
 
 	Gaming();
@@ -190,6 +193,32 @@ public:
 	int getWinner(DISKCOLORS* winner, int* numBlack, int* numWhite);
 	void incTurn() {
 		turn++;
+	}
+	void updateCount(DISKCOLORS winner) {
+		numGames++;
+		switch (winner) {
+		case DISKCOLORS::COLOR_BLACK:
+			numWin[0]++;
+			break;
+		case DISKCOLORS::COLOR_WHITE:
+			numWin[1]++;
+			break;
+		case DISKCOLORS::COLOR_NONE:
+			numDraw++;
+		}
+	}
+	void swapCount() {
+		int _tmp;
+		_tmp = numWin[0];
+		numWin[0] = numWin[1];
+		numWin[1] = _tmp;
+
+		playerIndexConvTable[0] = (playerIndexConvTable[0] + 1) % 2;
+		playerIndexConvTable[1] = (playerIndexConvTable[1] + 1) % 2;
+	}
+	int calcWinRate() {
+		int numWinToReport = numWin[playerIndexConvTable[colorToReport == DISKCOLORS::COLOR_BLACK ? 0 : 1]];
+		return (numWinToReport * 1000 + numGames / 2000) / numGames;	// Add (numGames / 2000) for rounding
 	}
 };
 

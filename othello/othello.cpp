@@ -157,6 +157,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				}
 				break;
 			case 'R':
+			{
 				int numRepeat = 0;
 				gaming.autoRepeat = true;
 				numRepeat = _wtoi(&argv[i][2]);
@@ -165,6 +166,18 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 					gaming.numRepeat = numRepeat;
 				}
 				break;
+			}
+			case 'C':
+				switch (argv[i][2]) {
+				case 'b':
+					gaming.colorToReport = DISKCOLORS::COLOR_BLACK;
+					break;
+				case 'w':
+					gaming.colorToReport = DISKCOLORS::COLOR_WHITE;
+					break;
+				default:
+					break;
+				}
 			defaut:
 				break;
 			}
@@ -766,6 +779,9 @@ void switchToNextPlayer(HWND hWnd)
 			Sleep(2000);
 		}
 
+		// Update the count and the number of win
+		gaming.updateCount(winner);
+
 		// Reset game
 		gaming.InitGame();
 
@@ -775,13 +791,23 @@ void switchToNextPlayer(HWND hWnd)
 		// Open Dialog if auto repeat is enabled
 		if ((gaming.bLimitedRepeating == false && gaming.autoRepeat == true) ||
 			(gaming.bLimitedRepeating == true && gaming.numRepeat > 0 && gaming.autoRepeat == true)) {
-			// Exchange white and black
+			// Swap white and black
 			PLAYERINFO tmpPlayerInfo;
 			memmove_s(&tmpPlayerInfo, sizeof(PLAYERINFO), &gaming.playerInfo[0], sizeof(PLAYERINFO));
 			memmove_s(&gaming.playerInfo[0], sizeof(PLAYERINFO), &gaming.playerInfo[1], sizeof(PLAYERINFO));
 			memmove_s(&gaming.playerInfo[1], sizeof(PLAYERINFO), &tmpPlayerInfo, sizeof(PLAYERINFO));
 
+			// Swap the game count
+			gaming.swapCount();
+
 			PostMessage(hWnd, WM_COMMAND, ID_FILE_NEWGAME, 0);
+		}
+		else if (gaming.autoStart == true && 
+			(gaming.autoRepeat == false || 
+			(gaming.autoRepeat == true && gaming.bLimitedRepeating == true && gaming.numRepeat <= 0))) {
+
+			int exitCode = gaming.calcWinRate();
+			PostQuitMessage(exitCode);
 		}
 	}
 	else {
