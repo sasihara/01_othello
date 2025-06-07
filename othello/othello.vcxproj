@@ -162,6 +162,7 @@
     <ClInclude Include="..\common\logging.h" />
     <ClInclude Include="..\common\messageGenerator.hpp" />
     <ClInclude Include="..\common\messageParser.hpp" />
+    <ClInclude Include="..\common\TFHandler.hpp" />
     <ClInclude Include="externalThinkerHandler.hpp" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="othello.hpp" />

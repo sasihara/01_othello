@@ -42,10 +42,13 @@
     <ClInclude Include="..\common\externalThinkerMessages.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\03_thinkerV3\thinkerV3\history.hpp">
+    <ClInclude Include="..\common\logging.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\logging.h">
+    <ClInclude Include="..\common\TFHandler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\03_thinkerV3\thinkerV3\history.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -68,10 +71,10 @@
     <ClCompile Include="externalThinkerHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\03_thinkerV3\thinkerV3\history.cpp">
+    <ClCompile Include="..\common\logging.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\logging.cpp">
+    <ClCompile Include="..\..\03_thinkerV3\thinkerV3\history.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
