@@ -1,4 +1,5 @@
 #pragma once
+#include <windows.h>
 #include "stdio.h"
 #include "stdarg.h"
 #include "limits.h"
@@ -33,7 +34,7 @@ enum LogLevel {
 
 class Logging {
 public:
-	int init(int level, const char* logPath);
+	int init(int level, const char* logPath, bool _flushing = false);
 	int logprintf(int _level, const char* format, ...);
 	int logprintf(const char* format, ...);
 	int logout(int _level, const char *format, ...);
@@ -41,8 +42,10 @@ public:
 	int flush();
 	int end();
 private:
+	//FILE* f;
+	HANDLE handle;
 	bool initialized = false;
-	FILE* f;
+	bool flushing = false;
 	int level = INT_MAX;
 
 	int logprintf(int _level, const char* _format, va_list _args);
