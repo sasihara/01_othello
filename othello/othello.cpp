@@ -37,6 +37,7 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    Dialog1(HWND, UINT, WPARAM, LPARAM);
+INT_PTR CALLBACK    Progress(HWND, UINT, WPARAM, LPARAM);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -163,7 +164,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				numRepeat = _wtoi(&argv[i][2]);
 				if (numRepeat > 0) {
 					gaming.bLimitedRepeating = true;
-					gaming.numRepeat = numRepeat;
+					gaming.numRepeatTotal = gaming.numRepeatRemain = numRepeat;
 				}
 				break;
 			}
@@ -184,8 +185,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
-	// If players are set both black and white in command line, autoStart is set to true
+	// If players are set to both black and white in command line, autoStart is set to true
 	if (state == 3) gaming.autoStart = true;
+
+
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -309,6 +312,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
 	case WM_CREATE:
 		if (gaming.autoStart == true) {
+			display.hProgressDialog = CreateDialog(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_PROGRESS), hWnd, Progress);
+			if (display.hProgressDialog) ShowWindow(display.hProgressDialog, SW_SHOW);
+			display.updateShowProgressOnMenu();
+
 			PostMessage(hWnd, WM_COMMAND, ID_FILE_NEWGAME, 0);
 		}
 		break;
@@ -347,6 +354,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			gaming.autoRepeat = !gaming.autoRepeat;
 			display.setAutoRepeatOnMenu(gaming.autoRepeat);
 			break;
+		case ID_SETTING_SHOWPROGRESSDIALOG:
+			if (display.hProgressDialog == NULL) {
+				display.hProgressDialog = CreateDialog(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_PROGRESS), hWnd, Progress);
+				if (display.hProgressDialog) ShowWindow(display.hProgressDialog, SW_SHOW);
+			}
+			else {
+				DestroyWindow(display.hProgressDialog);
+				display.hProgressDialog = NULL;
+			}
+
+			display.updateShowProgressOnMenu();
+			break;
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -361,7 +380,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	}
     case WM_DESTROY:
-        PostQuitMessage(0);
+		if (display.hProgressDialog != NULL){
+			DestroyWindow(display.hProgressDialog);
+			display.hProgressDialog = NULL;
+		}
+		PostQuitMessage(0);
         break;
 	case WM_LBUTTONUP:
 	{
@@ -782,6 +805,11 @@ void switchToNextPlayer(HWND hWnd)
 		// Update the count and the number of win
 		gaming.updateCount(winner);
 
+		// Update Progress Dialog Box
+		if (display.hProgressDialog) {
+			InvalidateRect(display.hProgressDialog, NULL, TRUE);
+		}
+
 		// Reset game
 		gaming.InitGame();
 
@@ -790,7 +818,7 @@ void switchToNextPlayer(HWND hWnd)
 
 		// Open Dialog if auto repeat is enabled
 		if ((gaming.bLimitedRepeating == false && gaming.autoRepeat == true) ||
-			(gaming.bLimitedRepeating == true && gaming.numRepeat > 0 && gaming.autoRepeat == true)) {
+			(gaming.bLimitedRepeating == true && gaming.numRepeatRemain > 0 && gaming.autoRepeat == true)) {
 			// Swap white and black
 			PLAYERINFO tmpPlayerInfo;
 			memmove_s(&tmpPlayerInfo, sizeof(PLAYERINFO), &gaming.playerInfo[0], sizeof(PLAYERINFO));
@@ -804,7 +832,7 @@ void switchToNextPlayer(HWND hWnd)
 		}
 		else if (gaming.autoStart == true && 
 			(gaming.autoRepeat == false || 
-			(gaming.autoRepeat == true && gaming.bLimitedRepeating == true && gaming.numRepeat <= 0))) {
+			(gaming.autoRepeat == true && gaming.bLimitedRepeating == true && gaming.numRepeatRemain <= 0))) {
 
 			int exitCode = gaming.calcWinRate();
 			PostQuitMessage(exitCode);
@@ -986,6 +1014,26 @@ int Display::setAutoRepeatOnMenu(bool _autoRepeat)
 			menuItemInfo.fState |= MFS_CHECKED;  // チェックを入れる
 		}
 		SetMenuItemInfo(GetMenu(hWnd), ID_SETTING_REPEAT, FALSE, &menuItemInfo);
+		DrawMenuBar(hWnd); // メニューバーを再描画して変更を反映
+	}
+
+	return 0;
+}
+
+int Display::updateShowProgressOnMenu()
+{
+	MENUITEMINFO menuItemInfo;
+	menuItemInfo.cbSize = sizeof(MENUITEMINFO);
+	menuItemInfo.fMask = MIIM_STATE;
+	BOOL bResult = GetMenuItemInfo(GetMenu(hWnd), ID_SETTING_SHOWPROGRESSDIALOG, FALSE, &menuItemInfo);
+	if (bResult) {
+		if (hProgressDialog == NULL) {
+			menuItemInfo.fState &= ~MFS_CHECKED; // チェックを外す
+		}
+		else {
+			menuItemInfo.fState |= MFS_CHECKED;  // チェックを入れる
+		}
+		SetMenuItemInfo(GetMenu(hWnd), ID_SETTING_SHOWPROGRESSDIALOG, FALSE, &menuItemInfo);
 		DrawMenuBar(hWnd); // メニューバーを再描画して変更を反映
 	}
 

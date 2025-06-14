@@ -112,10 +112,12 @@ private:
 	MENUITEMINFO menuInfo;
 	int winSizeWidth, winSizeHeight, gridWidth, gridHeight;
 public:
+	HWND hProgressDialog = NULL;
 	int SetParams(HWND hWnd);
 	int UpdateBoard(bool playerMustPass = false);
 	int DrawBoard(LPCWSTR windowTitle);
 	int setAutoRepeatOnMenu(bool autoRepeat);
+	int updateShowProgressOnMenu();
 	int updateWinSize() {
 		RECT rc;
 		GetClientRect(hWnd, &rc);
@@ -166,7 +168,8 @@ private:
 
 public:
 	bool autoRepeat = false;
-	int numRepeat = 0;
+	int numRepeatTotal = 0;
+	int numRepeatRemain = 0;
 	bool bLimitedRepeating = false;
 	bool autoStart = false;
 	DISKCOLORS colorToReport = DISKCOLORS::COLOR_BLACK;
@@ -194,6 +197,9 @@ public:
 	void incTurn() {
 		turn++;
 	}
+	int getNumGames() {
+		return numGames;
+	}
 	void updateCount(DISKCOLORS winner) {
 		numGames++;
 		switch (winner) {
@@ -217,8 +223,30 @@ public:
 		playerIndexConvTable[1] = (playerIndexConvTable[1] + 1) % 2;
 	}
 	int calcWinRate() {
-		int numWinToReport = numWin[playerIndexConvTable[colorToReport == DISKCOLORS::COLOR_BLACK ? 0 : 1]];
-		return (numWinToReport * 1000 + numGames / 2000) / numGames;	// Add (numGames / 2000) for rounding
+		if (numGames > 0) {
+			int numWinToReport = numWin[playerIndexConvTable[colorToReport == DISKCOLORS::COLOR_BLACK ? 0 : 1]];
+			return (numWinToReport * 1000 + numGames / 2000) / numGames;	// Add (numGames / 2000) for rounding
+		}
+		else {
+			return 0;
+		}
+	}
+	int calcWinRate(DISKCOLORS color) {
+		if (numGames > 0) {
+			int numWinToReport;
+			
+			if (color == DISKCOLORS::COLOR_NONE) {
+				numWinToReport = numDraw;
+			}
+			else {
+				numWinToReport = numWin[playerIndexConvTable[color == DISKCOLORS::COLOR_BLACK ? 0 : 1]];
+			}
+			
+			return (numWinToReport * 1000 + numGames / 2000) / numGames;	// Add (numGames / 2000) for rounding
+		}
+		else {
+			return 0;
+		}
 	}
 };
 

@@ -178,6 +178,7 @@
     <ClCompile Include="Dialog1.cpp" />
     <ClCompile Include="externalThinkerHandler.cpp" />
     <ClCompile Include="othello.cpp" />
+    <ClCompile Include="Progress.cpp" />
     <ClCompile Include="think.cpp" />
   </ItemGroup>
   <ItemGroup>

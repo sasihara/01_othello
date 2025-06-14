@@ -2,32 +2,48 @@
 #include "stdarg.h"
 #include "time.h"
 
-int Logging::init(int _level, const char* _logPath, bool _flushing)
+int Logging::init(int _level, const char* _logPath, bool _flushing, bool _append)
 {
 	int ret;
 	//if (fopen_s(&f, _logPath, "w") != 0) {
 	//	return -1;
 	//}
 
+	// Parameter Set
+	level = _level;
+	flushing = _flushing;
+	append = _append;
+
 	WCHAR _logPathW[2048];
 	ret = MultiByteToWideChar(CP_ACP, 0, _logPath, -1, _logPathW, _countof(_logPathW));
 	if (ret == 0) return -1;
 
-	handle = CreateFile(
-		_logPathW,
-		GENERIC_WRITE,
-		FILE_SHARE_READ,
-		NULL,
-		CREATE_ALWAYS,
-		FILE_ATTRIBUTE_NORMAL,
-		NULL
-	);
+	if (append == false) {
+		handle = CreateFile(
+			_logPathW,
+			GENERIC_WRITE,
+			FILE_SHARE_READ,
+			NULL,
+			CREATE_ALWAYS,
+			FILE_ATTRIBUTE_NORMAL,
+			NULL
+		);
+	}
+	else {
+		handle = CreateFile(
+			_logPathW,
+			GENERIC_WRITE,
+			FILE_SHARE_READ,
+			NULL,
+			OPEN_ALWAYS,
+			FILE_ATTRIBUTE_NORMAL,
+			NULL
+		);
+	}
 
 	if (handle == INVALID_HANDLE_VALUE) return -2;
 
 	initialized = true;
-	level = _level;
-	flushing = _flushing;
 
 	return 0;
 }

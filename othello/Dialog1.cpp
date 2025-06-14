@@ -71,7 +71,7 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		SetWindowText(GetDlgItem(hDlg, IDC_EDIT4), gaming.playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sPort);
 
 		WCHAR sNumRepeat[16];
-		_itow_s(gaming.numRepeat, sNumRepeat, _countof(sNumRepeat), 10);
+		_itow_s(gaming.numRepeatRemain, sNumRepeat, _countof(sNumRepeat), 10);
 		SetWindowText(GetDlgItem(hDlg, IDC_EDIT5), sNumRepeat);
 
 		// Set auto repeat checkbox
@@ -152,7 +152,7 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 			WCHAR sNumRepeat[16];
 			GetDlgItemText(hDlg, IDC_EDIT5, (TCHAR*)sNumRepeat, _countof(sNumRepeat));
-			gaming.numRepeat = _wtoi(sNumRepeat);
+			gaming.numRepeatRemain = _wtoi(sNumRepeat);
 
 			// Update auto repeat check on menu
 			display.setAutoRepeatOnMenu(gaming.autoRepeat);
@@ -465,7 +465,7 @@ void StartGame(HWND hDlg)
 
 	// Decrement num of games
 	if (gaming.autoRepeat == true && gaming.bLimitedRepeating == true) {
-		gaming.numRepeat--;
-		if (gaming.numRepeat <= 0) gaming.autoRepeat = false;
+		gaming.numRepeatRemain--;
+		if (gaming.numRepeatRemain <= 0) gaming.autoRepeat = false;
 	}
 }
