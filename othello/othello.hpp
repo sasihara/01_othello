@@ -173,6 +173,7 @@ public:
 	bool bLimitedRepeating = false;
 	bool autoStart = false;
 	DISKCOLORS colorToReport = DISKCOLORS::COLOR_BLACK;
+	int updateThreshold = 0;
 	PLAYERINFO	playerInfo[2];
 
 	Gaming();

@@ -169,16 +169,23 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				break;
 			}
 			case 'C':
+			{
+				int threshold;
 				switch (argv[i][2]) {
 				case 'b':
 					gaming.colorToReport = DISKCOLORS::COLOR_BLACK;
+					threshold = (int)(wcstod(&argv[i][3], NULL) * 10);
+					if (0 <= threshold && threshold <= 1000) gaming.updateThreshold = threshold;
 					break;
 				case 'w':
 					gaming.colorToReport = DISKCOLORS::COLOR_WHITE;
+					threshold = (int)(wcstod(&argv[i][3], NULL) * 10);
+					if (0 <= threshold && threshold <= 1000) gaming.updateThreshold = threshold;
 					break;
 				default:
 					break;
 				}
+			}
 			defaut:
 				break;
 			}
