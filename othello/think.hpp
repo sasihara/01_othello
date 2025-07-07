@@ -1,6 +1,7 @@
 #pragma once
 #include "othello.hpp"
 #include "logging.h"
+#include "history.hpp"
 
 // Bit for disk character
 #define DISKCHARFLAG_EXISTENCE	0x01		// Indicates disk exsits or not
@@ -21,9 +22,21 @@ enum class GAMESTATE {
 	GAMESTATE_END
 };
 
+typedef	double	Temperature;
+
+//typedef struct _SCORE {
+//	int x, y;
+//	int n;
+//	double probability;
+//} Score;
+
 class Thinker {
 public:
 	int SetParams(int turn, DISKCOLORS board[64]);
+	int SetTemperature(Temperature _temperature) {
+		temperature = _temperature;
+		return 0;
+	};
 	int think();
 	void analyzeDiskCharacter(DISKCOLORS board[64], int result[64]);
 
@@ -32,6 +45,7 @@ private:
 	int turn;
 	GAMESTATE thinkerState = GAMESTATE::GAMESTATE_EARLY_STAGE;
 	DISKCOLORS currentPlayer, opponent;
+	double temperature = 0.0;
 	int CheckPosX[60] = {
 		0, 0, 7, 7,
 		2, 2, 3, 4, 5, 5, 3, 4,
@@ -93,6 +107,8 @@ private:
 	int checkOneDir(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep);
 	int turnDisk(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int flag);
 	int turnDiskOneDir(DISKCOLORS board[64], int xPos, int yPos, DISKCOLORS color, int xStep, int yStep);
+	int bolzman(std::vector<Score>* scores, Temperature temperature);
+	int ranom_choice(std::vector<Score> scores, int *x, int *y);
 };
 
 int logoutBoard(Logging logging, DISKCOLORS* _board);

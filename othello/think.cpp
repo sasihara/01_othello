@@ -7,8 +7,12 @@
 #include <limits.h>
 #include "externalThinkerMessages.hpp"
 #include "think.hpp"
+#include <vector>
 
 extern Logging logging;
+std::random_device rd;
+std::mt19937 generator(rd());
+std::uniform_real_distribution<> dist_real(0.0, 1.0);
 
 //
 //	Function Name: SetParams
@@ -116,25 +120,110 @@ int Thinker::CountDisk(DISKCOLORS color, DISKCOLORS _board[64])
 //
 int Thinker::findBestPlaceForCurrentPlayer(int lv)
 {
-	int i, eval = INT_MIN, score;
+	int i, eval = INT_MIN;
 	int flag;
 	DISKCOLORS tmpBoard[64];
 	char x = -1, y = -1;
+	std::vector<Score> scores;
+	int ret;
+	int minScore = INT_MAX;
 
 	for (i = 0; i < 60; i++) {
 		if ((flag = check(board, CheckPosX[i], CheckPosY[i], currentPlayer)) > 0) {
 			memcpy(tmpBoard, board, sizeof(tmpBoard));
 			turnDisk(tmpBoard, CheckPosX[i], CheckPosY[i], currentPlayer, flag);
-			score = MinLevel(lv - 1, false, eval, tmpBoard);
-			if (eval < score) {
-				x = CheckPosX[i];
-				y = CheckPosY[i];
-				eval = score;
-			}
+
+			//score = MinLevel(lv - 1, false, eval, tmpBoard);
+			//if (eval < score) {
+			//	x = CheckPosX[i];
+			//	y = CheckPosY[i];
+			//	eval = score;
+			//}
+
+			Score score;
+			score.x = CheckPosX[i];
+			score.y = CheckPosY[i];
+			score.n = MinLevel(lv - 1, false, eval, tmpBoard);
+			if (score.n < minScore) minScore = score.n;		// 後でスコアを最小値1に正規化するために最小スコアを取得
+
+			scores.push_back(score);
 		}
 	}
 
-	return x * 10 + y;
+	if (temperature < DBL_EPSILON) {
+		int maxScore = -INT_MAX;
+		size_t maxIndex = 0;
+
+		for (size_t i = 0; i < scores.size(); i++) {
+			if (scores[i].n > maxScore) {
+				maxScore = scores[i].n;
+				maxIndex = i;
+			}
+		}
+
+		return scores[maxIndex].x * 10 + scores[maxIndex].y;
+	}
+	else {
+		int x, y;
+
+		// スコア値を最小1に正規化
+		for (size_t i = 0; i < scores.size(); i++) scores[i].n = scores[i].n - minScore + 1;
+
+		// スコアをボルツマン分布に変換
+		ret = bolzman(&scores, temperature);
+		if (ret < 0) {
+			return -1;
+		}
+
+		// ボルツマン分布にしたがってランダムに打ち手を選択
+		ret = ranom_choice(scores, &x, &y);
+
+		return x * 10 + y;
+	}
+}
+
+int Thinker::bolzman(std::vector<Score>* scores, Temperature temperature)
+{
+	double sum = 0.0;
+
+	//xs = [x * *(1 / temperature) for x in xs]
+	for (size_t i = 0; i < scores->size(); i++) {
+		scores->at(i).probability = pow((double)scores->at(i).n, 1.0 / temperature);
+
+		sum += scores->at(i).probability;
+	}
+
+	//return[x / sum(xs) for x in xs]
+	for (size_t i = 0; i < scores->size(); i++) {
+		scores->at(i).probability = scores->at(i).probability / sum;
+	}
+
+	return 0;
+}
+
+int Thinker::ranom_choice(std::vector<Score> scores, int *x, int *y)
+{
+	// 0～1までの乱数を生成する
+	double randomValue = (double)dist_real(generator);
+	LOGOUT(LOGLEVEL_TRACE, "乱数値 = %.6f", randomValue);
+
+	// 確率分布の値を先頭から加算し乱数値を超えた手前の値を選択する
+	double sum = 0.0;
+
+	for (size_t i = 0; i < scores.size(); i++) {
+		sum += scores[i].probability;
+
+		// 合計値が乱数値以上となった場合はその値を選択
+		// 確率分布の合計値は必ず最終的に乱数値の最大値の1.0となるので、必ず以下のif文が実行される
+		if (sum >= randomValue - DBL_EPSILON) {
+			*x = scores[i].x;
+			*y = scores[i].y;
+			return 0;
+		}
+	}
+
+	// 確率分布の合計値が1.0未満で本来はあり得ない。この場合はエラーとして返す。
+	return -1;
 }
 
 //

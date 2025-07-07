@@ -30,6 +30,9 @@ Gaming gaming;
 ExternalThinkerHandler externalThinkerHandler[2];	// 0: Black, 1: White
 Logging logging;
 History history;
+std::random_device rdForTurn;
+std::mt19937 genRandomTurn(rdForTurn());
+std::uniform_real_distribution<> dist_int(12, 47);
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -85,6 +88,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 					break;
 				case 'm':
 					gaming.playerInfo[pIndex].PlayerType = PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED;
+					gaming.playerInfo[pIndex].temperature = wcstod(&argv[i][3], NULL);
 
 					// state transition
 					switch (state) {
@@ -194,8 +198,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	// If players are set to both black and white in command line, autoStart is set to true
 	if (state == 3) gaming.autoStart = true;
-
-
 
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
@@ -1145,6 +1147,8 @@ Gaming::Gaming()
 	_tcscpy_s(playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_BLACK].sPort, _TEXT("60001"));
 	_tcscpy_s(playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sHostname, _TEXT("localhost"));
 	_tcscpy_s(playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sPort, _TEXT("60001"));
+	playerInfo[0].temperature = 0.0;
+	playerInfo[1].temperature = 0.0;
 
 	InitGame();
 }
@@ -1390,6 +1394,12 @@ int Gaming::InitGame()
 
 	// Initialize board
 	board.InitBoard();
+
+	// Decide the turn to apply the specified temperature
+	// temperatureを適用するturnを中盤の中からランダムに決定
+	for (size_t i = 0; i < 2; i++) {
+		gaming.playerInfo[i].turnForTemperature = (double)dist_int(genRandomTurn);
+	}
 
 	// Redraw the board
 	display.UpdateBoard(false);
@@ -1771,11 +1781,33 @@ DWORD WINAPI runThinker(LPVOID lpParameter)
 	DISKCOLORS workBoard[64];
 	int ret;
 
+	//srand((unsigned)time(NULL));
+
 	// Get current board from Board object.
 	board.CopyBoard(workBoard);
 
 	// Set parameters and then call thinker.
 	ret = thinker.SetParams(gaming.getTurn(), workBoard);
+
+	// Set the temperature if the current turn is equal to the turn which was decided to apply the temperature
+	double temperatureToApply = 0.0, temperature;
+	int currentTurn = gaming.getTurn();
+	size_t index = TurnToPlayerIndex(currentTurn);
+
+	int turnToApply = gaming.playerInfo[index].turnForTemperature;
+	temperature = gaming.playerInfo[index].temperature;
+
+	if (temperature > 0.0) {
+		if (currentTurn / 2 == turnToApply / 2) {
+			temperatureToApply = temperature;
+		}
+		else {
+			temperatureToApply = 0.0;
+		}
+	}
+	ret = thinker.SetTemperature(temperatureToApply);
+
+	// Call the thinker
 	ret = thinker.think();
 
 	// メッセージを送信
