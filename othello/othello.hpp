@@ -152,7 +152,7 @@ public:
 		}
 	}
 	int getPosX() {
-		if (0 <= posX && posX <= 2) return posX > 0 ? posX * 600 + 100 * (posX - 1) : 0;
+		if (0 <= posX && posX <= 2) return posX * 650;
 		else return -1;
 	}
 };

@@ -32,7 +32,7 @@ Logging logging;
 History history;
 std::random_device rdForTurn;
 std::mt19937 genRandomTurn(rdForTurn());
-std::uniform_real_distribution<> dist_int(12, 47);
+std::uniform_real_distribution<> dist_int(0, 47);
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
