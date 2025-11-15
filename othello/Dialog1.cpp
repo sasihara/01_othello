@@ -150,9 +150,15 @@ INT_PTR CALLBACK Dialog1(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				gaming.bLimitedRepeating = false;
 			}
 
+			// Get number of repeats
 			WCHAR sNumRepeat[16];
+			int currentNumRepeatRemain;
 			GetDlgItemText(hDlg, IDC_EDIT5, (TCHAR*)sNumRepeat, _countof(sNumRepeat));
-			gaming.numRepeatRemain = _wtoi(sNumRepeat);
+			currentNumRepeatRemain = _wtoi(sNumRepeat);
+			if (currentNumRepeatRemain != gaming.numRepeatRemain) {
+				gaming.numRepeatTotal = gaming.numRepeatRemain = _wtoi(sNumRepeat);
+				gaming.initCount();
+			}
 
 			// Update auto repeat check on menu
 			display.setAutoRepeatOnMenu(gaming.autoRepeat);

@@ -22,8 +22,43 @@ INT_PTR CALLBACK Progress(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_INITDIALOG:
 	{
+		//hProgressBar1 = GetDlgItem(hDlg, IDC_PROGRESS1);
+		//if (hProgressBar1){
+		//	SendMessage(hProgressBar1, PBM_SETRANGE32, 0, gaming.numRepeatTotal);
+		//	SendMessage(hProgressBar1, PBM_SETPOS, 0, 0);
+		//}
+
+		//hProgressBar2 = GetDlgItem(hDlg, IDC_PROGRESS2);
+		//if (hProgressBar2) {
+		//	SendMessage(hProgressBar2, PBM_SETRANGE32, 0, 1000);
+		//	SendMessage(hProgressBar2, PBM_SETPOS, 0, 0);
+		//}
+
+		//hProgressBar3 = GetDlgItem(hDlg, IDC_PROGRESS3);
+		//if (hProgressBar3) {
+		//	SendMessage(hProgressBar3, PBM_SETRANGE32, 0, 1000);
+		//	SendMessage(hProgressBar3, PBM_SETPOS, 0, 0);
+		//}
+
+		//hProgressBar4 = GetDlgItem(hDlg, IDC_PROGRESS4);
+		//if (hProgressBar4) {
+		//	SendMessage(hProgressBar4, PBM_SETRANGE32, 0, 1000);
+		//	SendMessage(hProgressBar4, PBM_SETPOS, 0, 0);
+		//}
+	}
+	case WM_COMMAND:
+	{
+		if (LOWORD(wParam) == IDOK) {
+			EndDialog(hDlg, IDOK);
+			display.updateShowProgressOnMenu();
+		}
+		break;
+	}
+	case WM_PAINT:
+	{
+		// レンジの更新
 		hProgressBar1 = GetDlgItem(hDlg, IDC_PROGRESS1);
-		if (hProgressBar1){
+		if (hProgressBar1) {
 			SendMessage(hProgressBar1, PBM_SETRANGE32, 0, gaming.numRepeatTotal);
 			SendMessage(hProgressBar1, PBM_SETPOS, 0, 0);
 		}
@@ -45,19 +80,9 @@ INT_PTR CALLBACK Progress(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			SendMessage(hProgressBar4, PBM_SETRANGE32, 0, 1000);
 			SendMessage(hProgressBar4, PBM_SETPOS, 0, 0);
 		}
-	}
-	case WM_COMMAND:
-	{
-		if (LOWORD(wParam) == IDOK) {
-			EndDialog(hDlg, IDOK);
-			display.updateShowProgressOnMenu();
-		}
-		break;
-	}
-	case WM_PAINT:
-	{
+
 		// テキスト更新
-		swprintf_s(strW, _countof(strW), L"%d/%d", gaming.getNumGames(), gaming.numRepeatTotal);
+		swprintf_s(strW, _countof(strW), L"%d/%d", gaming.getNumGames() + 1, gaming.numRepeatTotal);
 		SetDlgItemText(hDlg, IDC_STATIC5, strW);
 
 		double winRate = (double)gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) / 10.0;

@@ -6,8 +6,8 @@
 
 // ログレベル
 #ifndef LOGLEVEL
-//#define	LOGLEVEL	LOGLEVEL_INFO
-#define	LOGLEVEL	LOGLEVEL_ERROR
+#define	LOGLEVEL	LOGLEVEL_INFO
+//#define	LOGLEVEL	LOGLEVEL_ERROR
 #endif
 
 // デバッグマクロ

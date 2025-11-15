@@ -190,6 +190,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 					break;
 				}
 			}
+			case 'p':
+			{
+				int pos;
+				pos = _wtoi(&argv[i][2]);
+				if(0 <= pos && pos <= 2) display.setPosX(pos);
+			}
 			defaut:
 				break;
 			}
@@ -283,7 +289,12 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    RECT rc1, rc2;
    GetWindowRect(hWnd, &rc1);
    GetClientRect(hWnd, &rc2);
-   SetWindowPos(hWnd, NULL, 0, 0, WINDEFSIZE_WIDTH + ((rc1.right - rc1.left) - (rc2.right - rc2.left)), WINDEFSIZE_HEIGHT + ((rc1.bottom - rc1.top) - (rc2.bottom - rc2.top)), (SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE));
+   if (display.getPosX() < 0) {
+	   SetWindowPos(hWnd, NULL, 0, 0, WINDEFSIZE_WIDTH + ((rc1.right - rc1.left) - (rc2.right - rc2.left)), WINDEFSIZE_HEIGHT + ((rc1.bottom - rc1.top) - (rc2.bottom - rc2.top)), (SWP_NOZORDER | SWP_NOOWNERZORDER | SWP_NOMOVE));
+   }
+   else {
+	   SetWindowPos(hWnd, HWND_TOPMOST, display.getPosX(), 0, WINDEFSIZE_WIDTH + ((rc1.right - rc1.left) - (rc2.right - rc2.left)), WINDEFSIZE_HEIGHT + ((rc1.bottom - rc1.top) - (rc2.bottom - rc2.top)), (SWP_NOZORDER | SWP_NOOWNERZORDER));
+   }
 
    if (!hWnd)
    {
@@ -345,6 +356,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			// Redraw the board
 			display.UpdateBoard(false);
+
+			// Redraw Progress Dialog box
+			if (display.hProgressDialog) {
+				PostMessage(display.hProgressDialog, WM_PAINT, 0, 0);
+			}
 			break;
 		case ID_PASS:
 			if (gaming.getGameState() == GAME_STATES::STATE_GAMING && gaming.IsPlayerMustPass() == true) {
@@ -414,6 +430,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			// Redraw the board
 			display.UpdateBoard(false);
+
+			// Redraw Progress Dialog box
+			if (display.hProgressDialog) {
+				PostMessage(display.hProgressDialog, WM_PAINT, 0, 0);
+			}
 		}
 		break;
 	}
