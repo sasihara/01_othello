@@ -101,7 +101,7 @@ INT_PTR CALLBACK Progress(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 		// プログレスバー更新
 		if (gaming.colorToReport == DISKCOLORS::COLOR_BLACK) {
-			if (gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) <= gaming.updateThreshold * 0.7) {
+			if (gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) <= gaming.updateThreshold * 0.6) {
 				SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)RGB(255, 0, 0));
 			}
 			else if (gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) <= gaming.updateThreshold) {
