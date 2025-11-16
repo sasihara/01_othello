@@ -122,10 +122,12 @@ public:
 	int DrawBoard(LPCWSTR windowTitle);
 	int setAutoRepeatOnMenu(bool autoRepeat);
 	int updateShowProgressOnMenu();
+	RECT rcWin, rcClient;
+	
 	int updateWinSize() {
-		RECT rc;
-		GetClientRect(hWnd, &rc);
-		winSizeWidth = winSizeHeight = min((rc.right - rc.left), (rc.bottom - rc.top));
+		GetClientRect(hWnd, &rcClient);
+		GetWindowRect(hWnd, &rcWin);
+		winSizeWidth = winSizeHeight = min((rcClient.right - rcClient.left), (rcClient.bottom - rcClient.top));
 		gridWidth = winSizeWidth / 8;
 		gridHeight = winSizeHeight / 8;
 		return 0;

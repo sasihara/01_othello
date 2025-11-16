@@ -332,10 +332,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     {
 	case WM_CREATE:
 		if (gaming.autoStart == true) {
-			display.hProgressDialog = CreateDialog(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_PROGRESS), hWnd, Progress);
-			if (display.hProgressDialog) ShowWindow(display.hProgressDialog, SW_SHOW);
-			display.updateShowProgressOnMenu();
-
+			//display.hProgressDialog = CreateDialog(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_PROGRESS), hWnd, Progress);
+			//if (display.hProgressDialog) ShowWindow(display.hProgressDialog, SW_SHOW);
+			//display.updateShowProgressOnMenu();
+			PostMessage(hWnd, WM_COMMAND, ID_SETTING_SHOWPROGRESSDIALOG, 0);
 			PostMessage(hWnd, WM_COMMAND, ID_FILE_NEWGAME, 0);
 		}
 		break;

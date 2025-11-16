@@ -22,6 +22,8 @@ INT_PTR CALLBACK Progress(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_INITDIALOG:
 	{
+		SetWindowPos(hDlg, HWND_TOP, display.rcWin.left, display.rcWin.bottom + 5, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+		
 		//hProgressBar1 = GetDlgItem(hDlg, IDC_PROGRESS1);
 		//if (hProgressBar1){
 		//	SendMessage(hProgressBar1, PBM_SETRANGE32, 0, gaming.numRepeatTotal);
