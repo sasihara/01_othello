@@ -84,7 +84,7 @@ INT_PTR CALLBACK Progress(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 
 		// テキスト更新
-		swprintf_s(strW, _countof(strW), L"%d/%d", gaming.getNumGames() + 1, gaming.numRepeatTotal);
+		swprintf_s(strW, _countof(strW), L"%d/%d", gaming.numRepeatTotal - gaming.getNumGames(), gaming.numRepeatTotal);
 		SetDlgItemText(hDlg, IDC_STATIC5, strW);
 
 		double winRate = (double)gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) / 10.0;
@@ -101,11 +101,11 @@ INT_PTR CALLBACK Progress(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 		// プログレスバー更新
 		if (gaming.colorToReport == DISKCOLORS::COLOR_BLACK) {
-			if (gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) <= gaming.updateThreshold * 0.6) {
+			if (gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) <= gaming.updateThreshold * 0.7) {
 				SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)RGB(255, 0, 0));
 			}
 			else if (gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) <= gaming.updateThreshold) {
-				SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)RGB(255, 255, 0));
+				SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)RGB(255, 192, 0));
 			}
 			else {
 				SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)CLR_DEFAULT);
@@ -124,7 +124,7 @@ INT_PTR CALLBACK Progress(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)RGB(128, 128, 128));
 		}
 
-		if (hProgressBar1) SendMessage(hProgressBar1, PBM_SETPOS, gaming.getNumGames(), 0);
+		if (hProgressBar1) SendMessage(hProgressBar1, PBM_SETPOS, gaming.numRepeatTotal - gaming.getNumGames(), 0);
 		if (hProgressBar2) SendMessage(hProgressBar2, PBM_SETPOS, gaming.calcWinRate(DISKCOLORS::COLOR_BLACK), 0);
 		if (hProgressBar3) SendMessage(hProgressBar3, PBM_SETPOS, gaming.calcWinRate(DISKCOLORS::COLOR_WHITE), 0);
 		if (hProgressBar4) SendMessage(hProgressBar4, PBM_SETPOS, gaming.calcWinRate(DISKCOLORS::COLOR_NONE), 0);
