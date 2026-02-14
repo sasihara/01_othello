@@ -1425,9 +1425,9 @@ int Gaming::InitGame()
 	// Decide the turn to apply the specified temperature
 	// temperatureを適用するturnを中盤の中からランダムに決定
 	for (size_t i = 0; i < 2; i++) {
-		gaming.playerInfo[i].turnForTemperature.clear();
+		memset(gaming.playerInfo[i].turnForTemperature, 0, sizeof(gaming.playerInfo[i].turnForTemperature));
 		for (size_t j = 0; j < gaming.playerInfo[i].numRandomPlaceCount; j++) {
-			gaming.playerInfo[i].turnForTemperature.push_back(dist_int(genRandomTurn));
+			gaming.playerInfo[i].turnForTemperature[j] = dist_int(genRandomTurn);
 		}
 	}
 
@@ -1828,8 +1828,8 @@ DWORD WINAPI runThinker(LPVOID lpParameter)
 
 	if (temperature > 0.0) {
 		// もしturnForTemperatureに現ターンが含まれていれば､temperatureToApplyにtemperatureをセット
-		for (size_t i = 0; i < gaming.playerInfo[index].turnForTemperature.size(); i++) {
-		int turnToApply = gaming.playerInfo[index].turnForTemperature.at(i);
+		for (size_t i = 0; i < gaming.playerInfo[index].numRandomPlaceCount; i++) {
+			int turnToApply = gaming.playerInfo[index].turnForTemperature[i];
 			if (currentTurn / 2 == turnToApply / 2) {
 				temperatureToApply = temperature;
 				break;
