@@ -35,7 +35,7 @@ enum LogLevel {
 
 class Logging {
 public:
-	int init(int level, const char* logPath, bool _flushing = false, bool _append = false);
+	int init(int level, const char* logPath, bool _flushing = false, bool _append = false, bool _bFileDelCheck = false);
 	int logprintf(int _level, const char* format, ...);
 	int logprintf(const char* format, ...);
 	int logout(int _level, const char *format, ...);
@@ -49,7 +49,14 @@ private:
 	bool flushing = false;
 	bool append = false;
 	int level = INT_MAX;
+	WCHAR logPathW[2048];
+	bool bFileDelCheck = false;
 
 	int logprintf(int _level, const char* _format, va_list _args);
 	int logout(int _level, const char* format, va_list _args);
+	int fileOpen();
+	int fileClose() {
+		CloseHandle(handle);
+		return 0;
+	}
 };

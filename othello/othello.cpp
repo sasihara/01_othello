@@ -32,7 +32,7 @@ Logging logging;
 History history;
 std::random_device rdForTurn;
 std::mt19937 genRandomTurn(rdForTurn());
-std::uniform_real_distribution<> dist_int(0, 47);
+std::uniform_int_distribution<> dist_int(0, 47);
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -86,9 +86,11 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 						break;
 					}
 					break;
-				case 'm':
+				case 'm': {
 					gaming.playerInfo[pIndex].PlayerType = PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED;
-					gaming.playerInfo[pIndex].temperature = wcstod(&argv[i][3], NULL);
+					double numAndTemp = wcstod(&argv[i][3], NULL);
+					gaming.playerInfo[pIndex].temperature = fmod(numAndTemp, 100.0);
+					gaming.playerInfo[pIndex].numRandomPlaceCount = (int)(numAndTemp / 100.0 + 1.0);
 
 					// state transition
 					switch (state) {
@@ -107,6 +109,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 						break;
 					}
 					break;
+				}
 				case 'x': {
 					// Get hostname and port number
 					WCHAR hostname[256];
@@ -1170,6 +1173,8 @@ Gaming::Gaming()
 	_tcscpy_s(playerInfo[(size_t)PLAYERINDEX::PLAYERINDEX_WHITE].sPort, _TEXT("60001"));
 	playerInfo[0].temperature = 0.0;
 	playerInfo[1].temperature = 0.0;
+	playerInfo[0].numRandomPlaceCount = 0;
+	playerInfo[1].numRandomPlaceCount = 0;
 
 	InitGame();
 }
@@ -1419,7 +1424,10 @@ int Gaming::InitGame()
 	// Decide the turn to apply the specified temperature
 	// temperatureを適用するturnを中盤の中からランダムに決定
 	for (size_t i = 0; i < 2; i++) {
-		gaming.playerInfo[i].turnForTemperature = (double)dist_int(genRandomTurn);
+		gaming.playerInfo[i].turnForTemperature.clear();
+		for (size_t j = 0; j < gaming.playerInfo[i].numRandomPlaceCount; j++) {
+			gaming.playerInfo[i].turnForTemperature.push_back(dist_int(genRandomTurn));
+		}
 	}
 
 	// Redraw the board
@@ -1815,17 +1823,19 @@ DWORD WINAPI runThinker(LPVOID lpParameter)
 	int currentTurn = gaming.getTurn();
 	size_t index = TurnToPlayerIndex(currentTurn);
 
-	int turnToApply = gaming.playerInfo[index].turnForTemperature;
 	temperature = gaming.playerInfo[index].temperature;
 
 	if (temperature > 0.0) {
-		if (currentTurn / 2 == turnToApply / 2) {
-			temperatureToApply = temperature;
-		}
-		else {
-			temperatureToApply = 0.0;
+		// もしturnForTemperatureに現ターンが含まれていれば､temperatureToApplyにtemperatureをセット
+		for (size_t i = 0; i < gaming.playerInfo[index].turnForTemperature.size(); i++) {
+		int turnToApply = gaming.playerInfo[index].turnForTemperature.at(i);
+			if (currentTurn / 2 == turnToApply / 2) {
+				temperatureToApply = temperature;
+				break;
+			}
 		}
 	}
+
 	ret = thinker.SetTemperature(temperatureToApply);
 
 	// Call the thinker

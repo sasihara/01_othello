@@ -128,6 +128,7 @@ int Thinker::findBestPlaceForCurrentPlayer(int lv)
 	int ret;
 	int minScore = INT_MAX;
 
+//#pragma omp parallel for private(flag, tmpBoard)
 	for (i = 0; i < 60; i++) {
 		if ((flag = check(board, CheckPosX[i], CheckPosY[i], currentPlayer)) > 0) {
 			memcpy(tmpBoard, board, sizeof(tmpBoard));

@@ -9,6 +9,7 @@
 #include "windows.h"
 #include "resource.h"
 #include <random>
+#include <vector>
 
 // Constant
 #define	WINDEFSIZE_WIDTH			600
@@ -84,7 +85,8 @@ typedef struct {
 	TCHAR sHostname[256];
 	TCHAR sPort[6];
 	double temperature;
-	int turnForTemperature;
+	int numRandomPlaceCount;
+	std::vector<int> turnForTemperature;
 } PLAYERINFO;
 
 // Data type

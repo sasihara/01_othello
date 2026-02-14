@@ -2,7 +2,7 @@
 #include "stdarg.h"
 #include "time.h"
 
-int Logging::init(int _level, const char* _logPath, bool _flushing, bool _append)
+int Logging::init(int _level, const char* _logPath, bool _flushing, bool _append, bool _bFileDelCheck)
 {
 	int ret;
 	//if (fopen_s(&f, _logPath, "w") != 0) {
@@ -13,16 +13,30 @@ int Logging::init(int _level, const char* _logPath, bool _flushing, bool _append
 	level = _level;
 	flushing = _flushing;
 	append = _append;
+	bFileDelCheck = _bFileDelCheck;
 
-	WCHAR _logPathW[2048];
-	ret = MultiByteToWideChar(CP_ACP, 0, _logPath, -1, _logPathW, _countof(_logPathW));
+	ret = MultiByteToWideChar(CP_ACP, 0, _logPath, -1, logPathW, _countof(logPathW));
 	if (ret == 0) return -1;
 
+	// Open the file
+	ret = fileOpen();
+
+	if (ret < 0) {
+		return -2;
+	}
+
+	initialized = true;
+
+	return 0;
+}
+
+int Logging::fileOpen()
+{
 	if (append == false) {
 		handle = CreateFile(
-			_logPathW,
+			logPathW,
 			GENERIC_WRITE,
-			FILE_SHARE_READ,
+			FILE_SHARE_READ | FILE_SHARE_DELETE,
 			NULL,
 			CREATE_ALWAYS,
 			FILE_ATTRIBUTE_NORMAL,
@@ -31,9 +45,9 @@ int Logging::init(int _level, const char* _logPath, bool _flushing, bool _append
 	}
 	else {
 		handle = CreateFile(
-			_logPathW,
+			logPathW,
 			GENERIC_WRITE,
-			FILE_SHARE_READ,
+			FILE_SHARE_READ | FILE_SHARE_DELETE,
 			NULL,
 			OPEN_ALWAYS,
 			FILE_ATTRIBUTE_NORMAL,
@@ -41,17 +55,29 @@ int Logging::init(int _level, const char* _logPath, bool _flushing, bool _append
 		);
 	}
 
-	if (handle == INVALID_HANDLE_VALUE) return -2;
-
-	initialized = true;
-
-	return 0;
+	if (handle == INVALID_HANDLE_VALUE) return -1;
+	else return 0;
 }
 
 int Logging::logprintf(int _level, const char *_format, va_list _args)
 {
 	if (initialized == false) return -1;
 	if (_level > level) return 1;
+
+	// ファイル名変更･削除チェック
+	if (bFileDelCheck == true) {
+		WIN32_FILE_ATTRIBUTE_DATA fileInfo;
+		if (!GetFileAttributesExW(logPathW, GetFileExInfoStandard, &fileInfo)) {
+			// ファイルが存在しない（削除された）
+			fileClose();
+			
+			int ret = fileOpen();
+			if (ret < 0) {
+				initialized = false;
+				return -1;
+			}
+		}
+	}
 
 	// ログ出力
 	//vfprintf(f, _format, _args);
