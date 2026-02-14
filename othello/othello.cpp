@@ -91,7 +91,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 					gaming.playerInfo[pIndex].PlayerType = PLAYERTYPE::PLAYERTYPE_COMPUTER_EMBEDED;
 					double numAndTemp = wcstod(&argv[i][3], NULL);
 					gaming.playerInfo[pIndex].temperature = fmod(numAndTemp, 100.0);
-					gaming.playerInfo[pIndex].numRandomPlaceCount = (int)(numAndTemp / 100.0 + 1.0);
+					gaming.playerInfo[pIndex].numRandomPlaceCount = min((int)(numAndTemp / 100.0 + 1.0), _countof(gaming.playerInfo[pIndex].turnForTemperature));
 
 					// state transition
 					switch (state) {
