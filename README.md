@@ -21,6 +21,9 @@ Microsoft Visual Studio Community 2026での動作を確認しております。
 - 本ソースはレポジトリ"03_thinkerV3"内のソースを参照しますので、事前にレポジトリ"03_thinkerV3"内のソースを01_othelloと同じフォルダ内にダウンロードしておいて下さい。<BR>
 - othello.slnとexternalThinker_v1.slnの2つのプロジェクトファイルが存在します。othello.slnはオセロゲーム本体のプロジェクトファイル、externalThinker_v1.slnは外部思考ルーチンのプロジェクトファイルになります。それぞれVisual Studioでオープンしコンパイルすると、実行バイナリがx64\Releaseフォルダの下に作成されますので、それらをダブルクリックすることで実行できます。
 
+### コマンドオプション
+
+
 ## 開発履歴
 ### 2025/11/16
 開発環境をVisual Studio 2026に変更。

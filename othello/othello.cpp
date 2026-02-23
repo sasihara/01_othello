@@ -200,7 +200,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				pos = _wtoi(&argv[i][2]);
 				if(0 <= pos && pos <= 2) display.setPosX(pos);
 			}
-			defaut:
+			case 'a':
+			{
+			}
+		defaut:
 				break;
 			}
 		}
