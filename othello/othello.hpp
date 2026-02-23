@@ -195,6 +195,8 @@ public:
 	DISKCOLORS colorToReport = DISKCOLORS::COLOR_BLACK;
 	int updateThreshold = 0;
 	PLAYERINFO	playerInfo[2];
+	bool isAbandon = false;
+	double abandonRate = 0.0;
 
 	Gaming();
 	int PutDisk(int x, int y);
@@ -251,8 +253,10 @@ public:
 	}
 	int calcWinRate() {
 		if (numRepeatTotal > 0) {
+			if (numRepeatTotal - numRepeatRemain <= 0) return -1;
+
 			int numWinToReport = numWin[playerIndexConvTable[colorToReport == DISKCOLORS::COLOR_BLACK ? 0 : 1]];
-			return (numWinToReport * 1000 + numRepeatTotal / 2000) / numRepeatTotal;	// Add (numRepeatTotal / 2000) for rounding
+			return (numWinToReport * 1000 + numRepeatTotal / 2000) / (numRepeatTotal - numRepeatRemain);	// Add (numRepeatTotal / 2000) for rounding
 		}
 		else {
 			return 0;

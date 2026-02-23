@@ -199,9 +199,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 				int pos;
 				pos = _wtoi(&argv[i][2]);
 				if(0 <= pos && pos <= 2) display.setPosX(pos);
+				break;
 			}
 			case 'a':
 			{
+				gaming.abandonRate = wcstod(&argv[i][2], NULL);
+				if (0.0 <= gaming.abandonRate && gaming.abandonRate <= 100.0) gaming.isAbandon = true;
+				break;
 			}
 		defaut:
 				break;
@@ -853,9 +857,23 @@ void switchToNextPlayer(HWND hWnd)
 		// Redraw the board
 		display.UpdateBoard(false);
 
-		// Open Dialog if auto repeat is enabled
+		// Check if the condition of abandon is satisfied or not
+		bool isAbandonSatisfied = false;
+
+		if (gaming.autoStart == true &&
+			(gaming.autoRepeat == true && gaming.bLimitedRepeating == true &&
+				gaming.isAbandon == true && gaming.numRepeatRemain <= gaming.numRepeatTotal / 2)) {
+
+			int exitCode = gaming.calcWinRate();
+
+			if (exitCode < (int)(gaming.abandonRate * 10)) {
+				isAbandonSatisfied = true;
+			}
+		}
+
+		// Trigger the next game or exit
 		if ((gaming.bLimitedRepeating == false && gaming.autoRepeat == true) ||
-			(gaming.bLimitedRepeating == true && gaming.numRepeatRemain > 0 && gaming.autoRepeat == true)) {
+			(gaming.bLimitedRepeating == true && gaming.numRepeatRemain > 0 && gaming.autoRepeat == true && isAbandonSatisfied == false)) {
 			// Swap white and black
 			PLAYERINFO tmpPlayerInfo;
 			memmove_s(&tmpPlayerInfo, sizeof(PLAYERINFO), &gaming.playerInfo[0], sizeof(PLAYERINFO));
@@ -867,8 +885,8 @@ void switchToNextPlayer(HWND hWnd)
 
 			PostMessage(hWnd, WM_COMMAND, ID_FILE_NEWGAME, 0);
 		}
-		else if (gaming.autoStart == true && 
-			(gaming.autoRepeat == false || 
+		else if (gaming.autoStart == true &&
+			(gaming.autoRepeat == false || isAbandonSatisfied == true || 
 			(gaming.autoRepeat == true && gaming.bLimitedRepeating == true && gaming.numRepeatRemain <= 0))) {
 
 			int exitCode = gaming.calcWinRate();
