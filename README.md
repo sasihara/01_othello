@@ -22,7 +22,9 @@ Microsoft Visual Studio Community 2026での動作を確認しております。
 - othello.slnとexternalThinker_v1.slnの2つのプロジェクトファイルが存在します。othello.slnはオセロゲーム本体のプロジェクトファイル、externalThinker_v1.slnは外部思考ルーチンのプロジェクトファイルになります。それぞれVisual Studioでオープンしコンパイルすると、実行バイナリがx64\Releaseフォルダの下に作成されますので、それらをダブルクリックすることで実行できます。
 
 ### コマンドオプション
+othello.exe [オプション]
 
+|オプション|意味|
 
 ## 開発履歴
 ### 2025/11/16
