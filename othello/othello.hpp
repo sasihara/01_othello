@@ -128,7 +128,7 @@ public:
 	int updateWinSize() {
 		GetClientRect(hWnd, &rcClient);
 		GetWindowRect(hWnd, &rcWin);
-		winSizeWidth = winSizeHeight = min((rcClient.right - rcClient.left), (rcClient.bottom - rcClient.top));
+		winSizeWidth = winSizeHeight = ((rcClient.right - rcClient.left) < (rcClient.bottom - rcClient.top) ? (rcClient.right - rcClient.left) : (rcClient.bottom - rcClient.top));
 		gridWidth = winSizeWidth / 8;
 		gridHeight = winSizeHeight / 8;
 		return 0;
