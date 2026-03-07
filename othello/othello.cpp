@@ -861,12 +861,14 @@ void switchToNextPlayer(HWND hWnd)
 		bool isAbandonSatisfied = false;
 
 		if (gaming.autoStart == true &&
-			(gaming.autoRepeat == true && gaming.bLimitedRepeating == true &&
-				gaming.isAbandon == true && gaming.numRepeatRemain <= gaming.numRepeatTotal / 2)) {
+			gaming.autoRepeat == true && gaming.bLimitedRepeating == true &&
+				gaming.isAbandon == true) {
 
-			int exitCode = gaming.calcWinRate();
+			// 残り試合全勝しても指定レートに届かない場合は繰り返しを打ち切り
+			int numWin = gaming.calcNumWin();
+			int numWinExpected = numWin + (int)((double)gaming.numRepeatRemain * 1.0);	// 残り試合全勝と想定
 
-			if (exitCode < (int)(gaming.abandonRate * 10)) {
+			if (numWinExpected * 1000 / gaming.numRepeatTotal < (int)(gaming.abandonRate * 10)) {	// 1000分率で計算
 				isAbandonSatisfied = true;
 			}
 		}

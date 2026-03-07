@@ -190,7 +190,7 @@ public:
 	bool autoRepeat = false;
 	int numRepeatTotal = 0;
 	int numRepeatRemain = 0;
-	bool bLimitedRepeating = false;
+	bool bLimitedRepeating = false;		// 繰り返し回数を指定した場合にtrue
 	bool autoStart = false;
 	DISKCOLORS colorToReport = DISKCOLORS::COLOR_BLACK;
 	int updateThreshold = 0;
@@ -251,15 +251,23 @@ public:
 		playerIndexConvTable[0] = (playerIndexConvTable[0] + 1) % 2;
 		playerIndexConvTable[1] = (playerIndexConvTable[1] + 1) % 2;
 	}
+	int calcNumWin() {
+		if (numRepeatTotal > 0) {
+			return numWin[playerIndexConvTable[colorToReport == DISKCOLORS::COLOR_BLACK ? 0 : 1]];
+		}
+		else {
+			return -1;
+		}
+	}
 	int calcWinRate() {
 		if (numRepeatTotal > 0) {
 			if (numRepeatTotal - numRepeatRemain <= 0) return -1;
 
 			int numWinToReport = numWin[playerIndexConvTable[colorToReport == DISKCOLORS::COLOR_BLACK ? 0 : 1]];
-			return (numWinToReport * 1000 + numRepeatTotal / 2000) / (numRepeatTotal - numRepeatRemain);	// Add (numRepeatTotal / 2000) for rounding
+			return (numWinToReport * 1000) / (numRepeatTotal - numRepeatRemain);
 		}
 		else {
-			return 0;
+			return -2;
 		}
 	}
 	int calcWinRate(DISKCOLORS color) {
@@ -276,7 +284,7 @@ public:
 			return (numWinToReport * 1000 + numRepeatTotal / 2000) / numRepeatTotal;	// Add (numRepeatTotal / 2000) for rounding
 		}
 		else {
-			return 0;
+			return -1;
 		}
 	}
 };
