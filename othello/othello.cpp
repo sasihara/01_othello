@@ -866,10 +866,22 @@ void switchToNextPlayer(HWND hWnd)
 
 			// 残り試合全勝しても指定レートに届かない場合は繰り返しを打ち切り
 			int numWin = gaming.calcNumWin();
-			int numWinExpected = numWin + (int)((double)gaming.numRepeatRemain * 1.0);	// 残り試合全勝と想定
 
+			// 残り試合全勝してもダメかどうかの判定はすべてのタイミングで実施
+			int numWinExpected = numWin + gaming.numRepeatRemain;	// 残り試合全勝と想定
 			if (numWinExpected * 1000 / gaming.numRepeatTotal < (int)(gaming.abandonRate * 10)) {	// 1000分率で計算
 				isAbandonSatisfied = true;
+			}
+
+			// これまでの実績ベースを用いた判定は全試合の半数以上実施した段階で判断
+			if (gaming.numRepeatRemain > 10 && gaming.numRepeatRemain * 2 < gaming.numRepeatTotal) {
+				int winRate = gaming.calcWinRate() * 2;		// 2倍を想定
+				winRate = winRate > 1000 ? 1000 : winRate;
+
+				numWinExpected = numWin + gaming.numRepeatRemain * winRate / 1000;	// 残り試合をこれまでの２倍のペースで勝利
+				if (numWinExpected * 1000 / gaming.numRepeatTotal < (int)(gaming.abandonRate * 10)) {	// 1000分率で計算
+					isAbandonSatisfied = true;
+				}
 			}
 		}
 

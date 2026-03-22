@@ -6,6 +6,7 @@
 //
 
 #pragma once
+#define WIN32_LEAN_AND_MEAN
 #include "windows.h"
 #include "resource.h"
 #include <random>
@@ -18,7 +19,7 @@
 #define WAIT_TIME_THINK_ACCEPT		5
 #define WAIT_TIME_THINK_RESPONSE		30
 #define	MAX_NUM_TRANSMISSION_THINK_REQUEST	3
-#define WAIT_TIME_DISABLING_AUTOREPEAT		3
+#define WAIT_TIME_DISABLING_AUTOREPEAT		2
 
 #define RESULT_FILENAME	"gameResults.csv"
 
@@ -192,7 +193,7 @@ public:
 	int numRepeatRemain = 0;
 	bool bLimitedRepeating = false;		// 繰り返し回数を指定した場合にtrue
 	bool autoStart = false;
-	DISKCOLORS colorToReport = DISKCOLORS::COLOR_BLACK;
+	DISKCOLORS colorToReport = DISKCOLORS::COLOR_NONE;
 	int updateThreshold = 0;
 	PLAYERINFO	playerInfo[2];
 	bool isAbandon = false;
@@ -281,7 +282,7 @@ public:
 				numWinToReport = numWin[playerIndexConvTable[color == DISKCOLORS::COLOR_BLACK ? 0 : 1]];
 			}
 			
-			return (numWinToReport * 1000 + numRepeatTotal / 2000) / numRepeatTotal;	// Add (numRepeatTotal / 2000) for rounding
+			return (numWinToReport * 1000) / numRepeatTotal;
 		}
 		else {
 			return -1;

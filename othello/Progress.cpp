@@ -1,4 +1,4 @@
-#include "framework.h"
+Ôªø#include "framework.h"
 #include "commctrl.h"
 #include "othello.hpp"
 
@@ -58,7 +58,7 @@ INT_PTR CALLBACK Progress(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	case WM_PAINT:
 	{
-		// ÉåÉìÉWÇÃçXêV
+		// „É¨„É≥„Ç∏„ÅÆÊõ¥Êñ∞
 		hProgressBar1 = GetDlgItem(hDlg, IDC_PROGRESS1);
 		if (hProgressBar1) {
 			SendMessage(hProgressBar1, PBM_SETRANGE32, 0, gaming.numRepeatTotal);
@@ -83,7 +83,7 @@ INT_PTR CALLBACK Progress(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			SendMessage(hProgressBar4, PBM_SETPOS, 0, 0);
 		}
 
-		// ÉeÉLÉXÉgçXêV
+		// „ÉÜ„Ç≠„Çπ„ÉàÊõ¥Êñ∞
 		swprintf_s(strW, _countof(strW), L"%d/%d", gaming.numRepeatTotal - gaming.getNumGames(), gaming.numRepeatTotal);
 		SetDlgItemText(hDlg, IDC_STATIC5, strW);
 
@@ -99,29 +99,36 @@ INT_PTR CALLBACK Progress(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		swprintf_s(strW, _countof(strW), L"%.1f%%", winRate);
 		SetDlgItemText(hDlg, IDC_STATIC8, strW);
 
-		// ÉvÉçÉOÉåÉXÉoÅ[çXêV
+		// „Éó„É≠„Ç∞„É¨„Çπ„Éê„ÉºÊõ¥Êñ∞
 		if (gaming.colorToReport == DISKCOLORS::COLOR_BLACK) {
-			if (gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) <= gaming.updateThreshold * 0.7) {
+			if (gaming.isAbandon == true && gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) < (int)(gaming.abandonRate * 10)) {
 				SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)RGB(255, 0, 0));
 			}
-			else if (gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) <= gaming.updateThreshold) {
+			else if (gaming.calcWinRate(DISKCOLORS::COLOR_BLACK) < gaming.updateThreshold) {
 				SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)RGB(255, 192, 0));
 			}
 			else {
-				SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)CLR_DEFAULT);
+				SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)RGB(0, 208, 0));
 			}
 
 			SendMessage(hProgressBar3, PBM_SETBARCOLOR, 0, (LPARAM)RGB(128, 128, 128));
 		}
 		else if (gaming.colorToReport == DISKCOLORS::COLOR_WHITE) {
-			if (gaming.calcWinRate(DISKCOLORS::COLOR_WHITE) <= gaming.updateThreshold) {
+			if (gaming.isAbandon == true && gaming.calcWinRate(DISKCOLORS::COLOR_WHITE) < (int)(gaming.abandonRate * 10)) {
 				SendMessage(hProgressBar3, PBM_SETBARCOLOR, 0, (LPARAM)RGB(255, 0, 0));
 			}
+			else if (gaming.calcWinRate(DISKCOLORS::COLOR_WHITE) < gaming.updateThreshold) {
+				SendMessage(hProgressBar3, PBM_SETBARCOLOR, 0, (LPARAM)RGB(255, 192, 0));
+			}
 			else {
-				SendMessage(hProgressBar3, PBM_SETBARCOLOR, 0, (LPARAM)CLR_DEFAULT);
+				SendMessage(hProgressBar3, PBM_SETBARCOLOR, 0, (LPARAM)RGB(0, 208, 0));
 			}
 
 			SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)RGB(128, 128, 128));
+		}
+		else {
+			SendMessage(hProgressBar2, PBM_SETBARCOLOR, 0, (LPARAM)CLR_DEFAULT);
+			SendMessage(hProgressBar3, PBM_SETBARCOLOR, 0, (LPARAM)CLR_DEFAULT);
 		}
 
 		if (hProgressBar1) SendMessage(hProgressBar1, PBM_SETPOS, gaming.numRepeatTotal - gaming.getNumGames(), 0);
