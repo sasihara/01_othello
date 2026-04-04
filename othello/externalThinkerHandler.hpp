@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <WinSock2.h>
 #include "externalThinkerMessages.hpp"
 #include "messageGenerator.hpp"
@@ -37,7 +37,7 @@ private:
 	char message[MAX_MESSAGE_LENGTH];
 	int numRetrans = 0;
 	bool isVersionAvailable = false;
-	unsigned _int8 version;
+	uint16_t version;
 	bool isTextInfoAvailable = false;
 	char textInfo[64];
 

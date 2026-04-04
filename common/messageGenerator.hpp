@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <stdio.h>
 #include "othello.hpp"
 #include "externalThinkerMessages.hpp"
@@ -16,7 +16,7 @@ public:
 	int addTLVGameId(GameId gameId);
 	int addTLVResult(RESULT result);
 	int addTLVDiskColor(DISKCOLORS diskcolor);
-	int addTLVVersion(unsigned _int8 version);
+	int addTLVVersion(uint16_t version);
 	int addTLVTextInfo(const char* textInfo);
 	int getSize();
 private:

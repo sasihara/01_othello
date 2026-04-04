@@ -1,4 +1,4 @@
-#include <memory.h>
+﻿#include <memory.h>
 #include "externalThinkerMessages.hpp"
 #include "othello.hpp"
 #include "messageGenerator.hpp"
@@ -253,7 +253,7 @@ int MessageGenerator::addTLVDiskColor(DISKCOLORS diskcolor)
 	return 0;
 }
 
-int MessageGenerator::addTLVVersion(unsigned _int8 version)
+int MessageGenerator::addTLVVersion(uint16_t version)
 {
 	if (initilized == false) return -1;
 

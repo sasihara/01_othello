@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "othello.hpp"
 
 // define
@@ -79,7 +79,7 @@ typedef struct _TLV_REASON {
 } TLV_REASON;
 
 typedef struct _TLV_VERSION {
-	unsigned _int8 version;
+	uint16_t version;
 } TLV_VERSION;
 
 typedef struct _TLV_TEXTINFO {

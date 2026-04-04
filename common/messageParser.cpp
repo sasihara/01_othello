@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <memory.h>
 #include "externalThinkerMessages.hpp"
 #include "messageParser.hpp"
@@ -120,7 +120,7 @@ int MessageParser::SetParam(char* _message, int _length)
                 TLV_VERSION* pTlv_Version;
 
                 pTlv_Version = (TLV_VERSION*)&message[tlvHead + sizeof(TLV_VERSION)];
-                version = (unsigned _int8)pTlv_Version->version;
+                version = (uint16_t)pTlv_Version->version;
 
                 isVersionAvailable = true;
             }
@@ -302,7 +302,7 @@ int MessageParser::getTLVParamsReason()
 //		0		Succeed
 //		-1		Received message is not set yet.
 //
-int MessageParser::getTLVParamsVersion(unsigned _int8* _version)
+int MessageParser::getTLVParamsVersion(uint16_t* _version)
 {
     // Availability check
     if (isMessageDataAvailable == false) return -1;
